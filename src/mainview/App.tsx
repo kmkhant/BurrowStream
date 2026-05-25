@@ -1,4 +1,9 @@
+import { useState } from "react";
+import { CirclePlay, CircleStop } from "lucide-react";
+
 export default function App() {
+  const [serverStarted, setServerStarted] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans antialiased">
       {/* Header Bar */}
@@ -48,8 +53,20 @@ export default function App() {
                   Host your videos on the local network
                 </p>
               </div>
-              <button className="text-[11px] font-medium px-3 py-1.5 rounded-md bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/10 transition-colors">
-                Start Server
+              <button
+                className={`text-[11px] font-medium px-3 py-1.5 rounded-md ${serverStarted ? "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/10" : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/10"} transition-colors`}
+                onClick={() => setServerStarted((prev) => !prev)}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="">
+                    {serverStarted ? (
+                      <CircleStop className="size-4" />
+                    ) : (
+                      <CirclePlay className="size-4" />
+                    )}
+                  </div>
+                  <div>{serverStarted ? "Stop Server" : "Start Server"}</div>
+                </div>
               </button>
             </div>
           </div>
