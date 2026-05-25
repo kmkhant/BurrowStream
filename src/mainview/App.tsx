@@ -1,115 +1,88 @@
 import { useState } from "react";
 
 function App() {
-	const [count, setCount] = useState(0);
+  const [count, setCount] = useState(0);
 
-	return (
-		<div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 text-gray-900">
-			<div className="container mx-auto px-4 py-10 max-w-3xl">
-				<h1 className="text-5xl font-bold text-center text-white mb-2 drop-shadow-lg">
-					React + Tailwind + Vite
-				</h1>
-				<p className="text-xl text-center text-white/90 mb-10">
-					A fast Electrobun app with hot module replacement
-				</p>
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans">
+      {/* Header – draggable area */}
+      <div className="fixed top-0 left-0 right-0 h-12 bg-zinc-900/80 backdrop-blur flex items-center justify-between px-4 drag-region">
+        <span className="font-semibold text-zinc-100">BurrowStream Server</span>
+        <div className="flex gap-2 no-drag">
+          <button className="w-8 h-8 rounded hover:bg-zinc-700">–</button>
+          <button className="w-8 h-8 rounded hover:bg-zinc-700">□</button>
+          <button className="w-8 h-8 rounded hover:bg-red-600">×</button>
+        </div>
+      </div>
 
-				<div className="bg-white rounded-xl shadow-xl p-8 mb-8">
-					<h2 className="text-2xl font-semibold text-indigo-600 mb-4">
-						Interactive Counter
-					</h2>
-					<p className="mb-4 text-gray-600">
-						Click the button below to test React state. With HMR enabled, you
-						can edit this component and see changes instantly without losing
-						state.
-					</p>
-					<div className="flex items-center gap-4">
-						<button
-							onClick={() => setCount((c) => c + 1)}
-							className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg"
-						>
-							Count: {count}
-						</button>
-						<button
-							onClick={() => setCount(0)}
-							className="px-4 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
-						>
-							Reset
-						</button>
-					</div>
-				</div>
+      <div className="pt-12 p-6 space-y-6">
+        {/* Server Status Card */}
+        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-3 h-3 rounded-full bg-red-500`} />
+              <span className="font-mono text-sm">Not running</span>
+            </div>
+            <div className="flex gap-2">
+              <button className="px-4 py-2 rounded-lg font-medium transition bg-green-600 hover:bg-green-700 text-white">
+                Start Server
+              </button>
+              <button
+                disabled
+                className="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50"
+              >
+                Open Web Client
+              </button>
+            </div>
+          </div>
+        </div>
 
-				<div className="bg-white rounded-xl shadow-xl p-8 mb-8">
-					<h2 className="text-2xl font-semibold text-indigo-600 mb-4">
-						Getting Started
-					</h2>
-					<ul className="space-y-3 text-gray-700">
-						<li className="flex items-start gap-2">
-							<span className="text-indigo-500 font-bold">1.</span>
-							<span>
-								Run{" "}
-								<code className="bg-gray-100 px-2 py-1 rounded text-sm">
-									bun run dev
-								</code>{" "}
-								for development without HMR
-							</span>
-						</li>
-						<li className="flex items-start gap-2">
-							<span className="text-indigo-500 font-bold">2.</span>
-							<span>
-								Run{" "}
-								<code className="bg-gray-100 px-2 py-1 rounded text-sm">
-									bun run dev:hmr
-								</code>{" "}
-								for development with hot reload
-							</span>
-						</li>
-						<li className="flex items-start gap-2">
-							<span className="text-indigo-500 font-bold">3.</span>
-							<span>
-								Run{" "}
-								<code className="bg-gray-100 px-2 py-1 rounded text-sm">
-									bun run build
-								</code>{" "}
-								to build for production
-							</span>
-						</li>
-					</ul>
-				</div>
+        {/* Watched Folders */}
+        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
+          <h2 className="text-lg font-semibold mb-3">Watched Folders</h2>
+          <div className="space-y-2">
+            <button className="w-full mt-2 border border-dashed border-zinc-700 rounded-lg py-2 text-zinc-400 hover:text-zinc-300 hover:border-zinc-500 transition">
+              + Add Folder
+            </button>
+          </div>
+        </div>
 
-				<div className="bg-white rounded-xl shadow-xl p-8">
-					<h2 className="text-2xl font-semibold text-indigo-600 mb-4">Stack</h2>
-					<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-						<div className="text-center p-4 bg-gray-50 rounded-lg">
-							<div className="text-3xl mb-2">⚡</div>
-							<div className="font-medium">Electrobun</div>
-						</div>
-						<div className="text-center p-4 bg-gray-50 rounded-lg">
-							<div className="text-3xl mb-2">⚛️</div>
-							<div className="font-medium">React</div>
-						</div>
-						<div className="text-center p-4 bg-gray-50 rounded-lg">
-							<div className="text-3xl mb-2">🎨</div>
-							<div className="font-medium">Tailwind</div>
-						</div>
-						<div className="text-center p-4 bg-gray-50 rounded-lg">
-							<div className="text-3xl mb-2">🔥</div>
-							<div className="font-medium">Vite HMR</div>
-						</div>
-					</div>
-				</div>
+        {/* Scan Controls */}
+        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium disabled:opacity-50">
+              Scan Now
+            </button>
+            <div className="text-sm text-zinc-400">Last scan: Never</div>
+          </div>
+        </div>
 
-				<div className="text-center text-white/80 mt-10 p-6 bg-white/10 rounded-lg backdrop-blur">
-					<p>
-						Edit{" "}
-						<code className="bg-white/20 px-2 py-1 rounded text-sm">
-							src/mainview/App.tsx
-						</code>{" "}
-						and save to see HMR in action
-					</p>
-				</div>
-			</div>
-		</div>
-	);
+        {/* Activity Log (collapsible) */}
+        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
+          <div className="flex items-center justify-between cursor-pointer select-none">
+            <h2 className="text-lg font-semibold">Activity Log</h2>
+            <span className="text-zinc-400">▲</span>
+          </div>
+          <div className="mt-3 space-y-1 max-h-64 overflow-y-auto font-mono text-xs">
+            <div className="text-zinc-500">No logs yet.</div>
+            <div className="flex gap-2 pt-2">
+              <button className="text-xs text-zinc-400 hover:text-white">
+                Clear Log
+              </button>
+              <button className="text-xs text-zinc-400 hover:text-white">
+                Export
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Stats */}
+        <div className="text-xs text-zinc-500 text-center border-t border-zinc-800 pt-4">
+          Version 0.1.0 | CPU: 0% | RAM: 0 MB
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default App;
