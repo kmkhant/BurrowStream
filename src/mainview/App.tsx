@@ -1,37 +1,192 @@
-import { useState } from "react";
-import { CirclePlay, CircleStop } from "lucide-react";
+// src/views/admin/components/AdminPanel.tsx
+import { useState, useCallback } from "react";
+import {
+  CirclePlay,
+  CircleStop,
+  FolderOpen,
+  Film,
+  Tv,
+  Scan,
+  Trash2,
+  HardDrive,
+  Clock,
+  Heart,
+  Plus,
+  Moon,
+  Sun,
+} from "lucide-react";
+
+import { useTheme } from "./hooks/useTheme";
+
+// Mock data hooks - replace with actual RPC calls
+interface Folder {
+  id: number;
+  path: string;
+  name: string | null;
+  isActive: boolean;
+  lastScanAt: number | null;
+  totalVideos: number;
+  totalSize: number;
+}
+
+interface Video {
+  id: number;
+  title: string;
+  type: "movie" | "tv" | "unknown";
+  year?: number;
+  season?: number;
+  episode?: number[];
+  episodeTitle?: string;
+  quality?: string;
+  size: number;
+  extension: string;
+  isFavorite: boolean;
+  playCount: number;
+  lastPlayedAt?: number;
+  scannedAt: number;
+}
+
+interface ScanProgress {
+  processed: number;
+  total: number;
+  phase: "discovering" | "processing" | "complete" | "error";
+  currentFile?: string;
+}
+
+interface ActivityLog {
+  id: number;
+  level: "info" | "warn" | "error";
+  category: "scan" | "server" | "system" | "user";
+  message: string;
+  createdAt: number;
+}
 
 export default function App() {
-  const [serverStarted, setServerStarted] = useState(false);
+  // Theme State
+  const { theme, resolved, toggleTheme } = useTheme();
+
+  // Server state
+  const [serverRunning, setServerRunning] = useState(false);
+  const [serverUrl, setServerUrl] = useState("");
+  const [uptime, _setUptime] = useState(0);
+
+  // Library state
+  const [folders, _setFolders] = useState<Folder[]>([]);
+  const [videos, _setVideos] = useState<Video[]>([]);
+  const [selectedType, setSelectedType] = useState<"all" | "movie" | "tv">(
+    "all",
+  );
+
+  // Scan state
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState<ScanProgress | null>(null);
+
+  // Activity
+  const [activityLogs, _setActivityLogs] = useState<ActivityLog[]>([]);
+  const [showActivity, setShowActivity] = useState(false);
+
+  // Stats
+  const totalVideos = videos.length;
+  const totalSize = videos.reduce((sum, v) => sum + v.size, 0);
+  const movieCount = videos.filter((v) => v.type === "movie").length;
+  const tvCount = videos.filter((v) => v.type === "tv").length;
+
+  // Format bytes
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
+  };
+
+  // Format time ago
+  const timeAgo = (timestamp: number) => {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return "just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  };
+
+  // Server controls
+  const toggleServer = useCallback(async () => {
+    if (serverRunning) {
+      // await rpc.request("stopStreamingServer");
+      setServerRunning(false);
+    } else {
+      // await rpc.request("startStreamingServer");
+      setServerRunning(true);
+      setServerUrl("http://192.168.1.5:8080");
+    }
+  }, [serverRunning]);
+
+  // Scan controls
+  const startScan = useCallback(async () => {
+    setIsScanning(true);
+    setScanProgress({ processed: 0, total: 0, phase: "discovering" });
+    // await rpc.request("startScan");
+  }, []);
+
+  const cancelScan = useCallback(async () => {
+    // await rpc.request("cancelScan");
+    setIsScanning(false);
+    setScanProgress(null);
+  }, []);
+
+  // Folder management
+  const addFolder = useCallback(async () => {
+    // const result = await rpc.request("selectFolder");
+    // await rpc.request("addWatchedFolder", { path: result.path });
+  }, []);
+
+  const removeFolder = useCallback(async (_folderId: number) => {
+    // await rpc.request("removeWatchedFolder", { id: folderId });
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans antialiased">
+    <div className="min-h-screen bg-[var(--bg)] text-zinc-100 font-sans antialiased">
       {/* Header Bar */}
-      <header className="sticky top-0 z-50 border-b border-white/[0.04] bg-[#0A0A0A]/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-[var(--border-subtle)] bg-[var(--bg)]/80 backdrop-blur-xl">
         <div className="flex items-center justify-between h-12 px-4">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div>LG</div>
-              <span className="text-xs font-medium text-zinc-400">
+              <Film className="size-4 text-[var(--text-secondary)]" />
+              <span className="text-xs font-medium text-[var(--text-secondary)]">
                 BurrowStream
               </span>
             </div>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/[0.04] text-zinc-500 border border-white/[0.04]">
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/[0.04] text-[var(--text-tertiary)] border border-[var(--border-subtle)]">
               v0.1.0
             </span>
           </div>
+
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 pr-3 mr-3 border-r border-white/[0.04]">
-              <span className="relative flex size-1.5">
-                <span className="animate-ping absolute inline-flex size-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full size-1.5 bg-red-500"></span>
-              </span>
-              <span className="text-[11px] text-zinc-500">Server Offline</span>
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="text-[11px] px-2 py-1.5 rounded-md bg-[var(--bg-elevated)] hover:bg-[var(--bg-hover)] border border-[var(--border-subtle)] transition-colors"
+              title={`Theme: ${theme}`}
+            >
+              {resolved === "dark" ? (
+                <Moon className="size-3.5 text-[var(--text-secondary)]" />
+              ) : (
+                <Sun className="size-3.5 text-[var(--text-secondary)]" />
+              )}
+            </button>
+
+            {/* Server Status */}
+            <div className="flex items-center gap-2 pr-3 mr-3 border-r border-[var(--border-subtle)]">
+              {/* ... existing server status ... */}
             </div>
-            <button className="text-[11px] px-3 py-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] transition-colors">
+
+            <button className="text-[11px] px-3 py-1.5 rounded-md bg-[var(--bg-elevated)] hover:bg-[var(--bg-hover)] border border-[var(--border-subtle)] transition-colors text-[var(--text-tertiary)]">
               Docs
             </button>
-            <button className="text-[11px] px-3 py-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] transition-colors">
+            <button className="text-[11px] px-3 py-1.5 rounded-md bg-[var(--bg-elevated)] hover:bg-[var(--bg-hover)] border border-[var(--border-subtle)] transition-colors text-[var(--text-tertiary)]">
               Settings
             </button>
           </div>
@@ -40,161 +195,397 @@ export default function App() {
 
       {/* Main Content */}
       <main className="max-w-5xl mx-auto p-6 space-y-4">
-        {/* Quick Actions Row */}
+        {/* Stats Grid - Example of updated card */}
+        <div className="grid grid-cols-4 gap-3">
+          <div className=" rounded-lg p-4 hover:bg-[var(--bg-hover)] transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-md bg-[var(--bg)]">
+                <Film className="size-3.5 text-[var(--text-secondary)]" />
+              </div>
+              <div>
+                <div className="text-xs font-medium text-[var(--text-primary)]">
+                  {totalVideos}
+                </div>
+                <div className="text-[10px] text-[var(--text-secondary)]">
+                  Total Videos
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-4 hover:bg-white/[0.03] transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-md bg-white/[0.03]">
+                <HardDrive className="size-3.5 text-zinc-400" />
+              </div>
+              <div>
+                <div className="text-xs font-medium text-[var(--text-primary)]">
+                  {formatBytes(totalSize)}
+                </div>
+                <div className="text-[10px] text-[var(--text-secondary)]">
+                  Library Size
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-4 hover:bg-white/[0.03] transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-md bg-white/[0.03]">
+                <FolderOpen className="size-3.5 text-zinc-400" />
+              </div>
+              <div>
+                <div className="text-xs font-medium text-[var(--text-primary)]">
+                  {folders.length}
+                </div>
+                <div className="text-[10px] text-[var(--text-secondary)]">
+                  Folders
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-4 hover:bg-white/[0.03] transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-md bg-white/[0.03]">
+                <Clock className="size-3.5 text-zinc-400" />
+              </div>
+              <div>
+                <div className="text-xs font-medium text-[var(--text-primary)]">
+                  {Math.floor(uptime / 3600)}h{" "}
+                  {Math.floor((uptime % 3600) / 60)}m
+                </div>
+                <div className="text-[10px] text-[var(--text-secondary)]">
+                  Uptime
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
         <div className="grid grid-cols-3 gap-3">
           {/* Server Control */}
           <div className="col-span-2 bg-white/[0.02] border border-white/[0.04] rounded-lg p-4 hover:bg-white/[0.03] transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xs font-medium text-zinc-300">
+                <h3 className="text-xs font-medium text-[var(--text-primary)]">
                   Streaming Server
                 </h3>
                 <p className="text-[11px] text-zinc-500 mt-0.5">
-                  Host your videos on the local network
+                  {serverRunning
+                    ? `Streaming at ${serverUrl}`
+                    : "Host your videos on the local network"}
                 </p>
               </div>
               <button
-                className={`text-[11px] font-medium px-3 py-1.5 rounded-md ${serverStarted ? "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/10" : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/10"} transition-colors`}
-                onClick={() => setServerStarted((prev) => !prev)}
+                onClick={toggleServer}
+                className={`flex items-center gap-2 text-[11px] font-medium px-3 py-1.5 rounded-md transition-colors ${
+                  serverRunning
+                    ? "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/10"
+                    : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/10"
+                }`}
               >
-                <div className="flex items-center gap-2">
-                  <div className="">
-                    {serverStarted ? (
-                      <CircleStop className="size-4" />
-                    ) : (
-                      <CirclePlay className="size-4" />
-                    )}
-                  </div>
-                  <div>{serverStarted ? "Stop Server" : "Start Server"}</div>
-                </div>
+                {serverRunning ? (
+                  <CircleStop className="size-4" />
+                ) : (
+                  <CirclePlay className="size-4" />
+                )}
+                {serverRunning ? "Stop Server" : "Start Server"}
               </button>
             </div>
           </div>
 
-          {/* Quick Stats */}
-          <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-md bg-white/[0.03]">
-                <svg
-                  className="size-3.5 text-zinc-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z"
-                  />
-                </svg>
-              </div>
+          {/* Scan Control */}
+          <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-4 hover:bg-white/[0.03] transition-colors">
+            <div className="flex items-center justify-between">
               <div>
-                <div className="text-xs font-medium text-zinc-300">
-                  0 videos
-                </div>
-                <div className="text-[10px] text-zinc-500">in library</div>
+                <h3 className="text-xs font-medium text-[var(--text-primary)]">
+                  {isScanning ? "Scanning..." : "Library Scan"}
+                </h3>
+                <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
+                  {isScanning
+                    ? `${scanProgress?.processed || 0} / ${scanProgress?.total || 0} files`
+                    : `${folders.length} folder${folders.length !== 1 ? "s" : ""} watched`}
+                </p>
               </div>
+              <button
+                onClick={isScanning ? cancelScan : startScan}
+                disabled={folders.length === 0 && !isScanning}
+                className={`flex items-center gap-2 text-[11px] font-medium px-3 py-1.5 rounded-md transition-colors ${
+                  isScanning
+                    ? "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/10"
+                    : "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/10"
+                }`}
+              >
+                <Scan className="size-4" />
+                {isScanning ? "Cancel" : "Scan Now"}
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Library Section */}
+        {/* Scan Progress Bar */}
+        {scanProgress &&
+          (scanProgress.phase === "discovering" ||
+            scanProgress.phase === "processing") && (
+            <div className="bg-blue-500/[0.02] border border-blue-500/10 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] text-zinc-400">
+                  {scanProgress.phase === "discovering"
+                    ? "Discovering files..."
+                    : "Processing videos..."}
+                </span>
+                <span className="text-[10px] text-zinc-500">
+                  {scanProgress.processed} / {scanProgress.total}
+                </span>
+              </div>
+              <div className="h-1 bg-white/[0.04] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-500/50 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${scanProgress.total > 0 ? (scanProgress.processed / scanProgress.total) * 100 : 0}%`,
+                  }}
+                />
+              </div>
+              {scanProgress.currentFile && (
+                <p className="text-[10px] text-zinc-500 mt-2 truncate">
+                  {scanProgress.currentFile.split("/").pop()}
+                </p>
+              )}
+            </div>
+          )}
+
+        {/* Media Type Filter */}
+        <div className="flex items-center gap-2">
+          {["all", "movie", "tv"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setSelectedType(type as "all" | "movie" | "tv")}
+              className={`text-[11px] px-3 py-1.5 rounded-md transition-colors ${
+                selectedType === type
+                  ? "bg-white/[0.06] text-[var(--text-primary)] border border-white/[0.08]"
+                  : "bg-white/[0.02] text-[var(--text-tertiary)] border border-white/[0.04] hover:bg-white/[0.04]"
+              }`}
+            >
+              {type === "all"
+                ? "All"
+                : type === "movie"
+                  ? "Movies"
+                  : "TV Shows"}
+              {type !== "all" && (
+                <span className="ml-1 text-zinc-600">
+                  {type === "movie" ? movieCount : tvCount}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Media Library */}
         <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-white/[0.04]">
             <div>
-              <h3 className="text-xs font-medium text-zinc-300">
+              <h3 className="text-xs font-medium text-[var(--text-primary)]">
                 Media Library
               </h3>
-              <p className="text-[10px] text-zinc-500 mt-0.5">
-                Your video collection
+              <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">
+                {videos.length === 0
+                  ? "Your video collection"
+                  : `${videos.length} video${videos.length !== 1 ? "s" : ""}`}
               </p>
             </div>
-            <button className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] transition-colors">
-              <svg
-                className="size-3"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4.5v15m7.5-7.5h-15"
-                />
-              </svg>
+            <button
+              onClick={addFolder}
+              className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] transition-colors"
+            >
+              <Plus className="size-3" />
               Add Folder
             </button>
           </div>
 
-          {/* Empty State */}
-          <div className="flex flex-col items-center justify-center py-12 px-4">
-            <div className="p-3 rounded-full bg-white/[0.03] mb-3">
-              <svg
-                className="size-5 text-zinc-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1}
-                  d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"
-                />
-              </svg>
+          {videos.length === 0 ? (
+            /* Empty State */
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <div className="p-3 rounded-full bg-white/[0.03] mb-3">
+                <Film className="size-5 text-zinc-600" />
+              </div>
+              <p className="text-xs text-zinc-500 mb-2">No videos added yet</p>
+              <p className="text-[11px] text-zinc-600 text-center max-w-sm">
+                Add folders containing your video files to start streaming them
+                to your devices
+              </p>
             </div>
-            <p className="text-xs text-zinc-500 mb-2">No videos added yet</p>
-            <p className="text-[11px] text-zinc-600 text-center max-w-sm">
-              Add folders containing your video files to start streaming them to
-              your devices
-            </p>
-          </div>
+          ) : (
+            /* Video Grid */
+            <div className="divide-y divide-white/[0.04]">
+              {videos
+                .filter(
+                  (v) => selectedType === "all" || v.type === selectedType,
+                )
+                .slice(0, 10)
+                .map((video) => (
+                  <div
+                    key={video.id}
+                    className="flex items-center justify-between px-4 py-3 hover:bg-white/[0.02] transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-1.5 rounded bg-white/[0.03]">
+                        {video.type === "movie" ? (
+                          <Film className="size-3.5 text-zinc-500" />
+                        ) : (
+                          <Tv className="size-3.5 text-zinc-500" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs text-zinc-300 truncate">
+                          {video.title}
+                        </p>
+                        <div className="flex items-center gap-2 text-[10px] text-zinc-500">
+                          {video.year && <span>{video.year}</span>}
+                          {video.season && video.episode && (
+                            <span>
+                              S{video.season.toString().padStart(2, "0")}E
+                              {video.episode[0].toString().padStart(2, "0")}
+                            </span>
+                          )}
+                          {video.quality && (
+                            <span className="px-1 py-0.5 rounded bg-white/[0.04] text-zinc-600">
+                              {video.quality}
+                            </span>
+                          )}
+                          <span>{formatBytes(video.size)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {video.isFavorite && (
+                        <Heart className="size-3.5 text-red-400 fill-red-400" />
+                      )}
+                      {video.playCount > 0 && (
+                        <span className="text-[10px] text-zinc-600">
+                          {video.playCount}x
+                        </span>
+                      )}
+                      <span className="text-[10px] text-zinc-600">
+                        {timeAgo(video.scannedAt)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
 
-        {/* Activity Section */}
+        {/* Watched Folders */}
+        {folders.length > 0 && (
+          <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-white/[0.04]">
+              <div>
+                <h3 className="text-xs font-medium text-zinc-300">
+                  Watched Folders
+                </h3>
+                <p className="text-[10px] text-zinc-500 mt-0.5">
+                  {folders.length} folder{folders.length !== 1 ? "s" : ""} being
+                  monitored
+                </p>
+              </div>
+            </div>
+            <div className="divide-y divide-white/[0.04]">
+              {folders.map((folder) => (
+                <div
+                  key={folder.id}
+                  className="flex items-center justify-between px-4 py-3"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <FolderOpen className="size-3.5 text-zinc-500 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-zinc-300 truncate">
+                        {folder.name || folder.path.split("/").pop()}
+                      </p>
+                      <p className="text-[10px] text-zinc-600 truncate">
+                        {folder.path}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] text-zinc-500">
+                      {folder.totalVideos} videos
+                    </span>
+                    <span className="text-[10px] text-zinc-500">
+                      {formatBytes(folder.totalSize)}
+                    </span>
+                    <button
+                      onClick={() => removeFolder(folder.id)}
+                      className="p-1 rounded hover:bg-red-500/10 text-zinc-600 hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Activity Log */}
         <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg overflow-hidden">
-          <div className="flex items-center justify-between p-4 border-b border-white/[0.04]">
+          <div
+            className="flex items-center justify-between p-4 border-b border-white/[0.04] cursor-pointer"
+            onClick={() => setShowActivity(!showActivity)}
+          >
             <div>
-              <h3 className="text-xs font-medium text-zinc-300">Activity</h3>
-              <p className="text-[10px] text-zinc-500 mt-0.5">
+              <h3 className="text-xs font-medium text-[var(--text-primary)]">
+                Activity
+              </h3>
+              <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">
                 Recent server events
               </p>
             </div>
-            <button className="text-[10px] text-zinc-500 hover:text-zinc-400 transition-colors">
-              Clear all
-            </button>
-          </div>
-          <div className="divide-y divide-white/[0.04]">
-            {/* Activity items would go here */}
-            <div className="px-4 py-3">
-              <div className="flex items-start gap-3">
-                <div className="p-1 rounded bg-white/[0.03] mt-0.5">
-                  <div className="size-1.5 rounded-full bg-zinc-700"></div>
-                </div>
-                <div>
-                  <p className="text-[11px] text-zinc-500">Server started</p>
-                  <p className="text-[10px] text-zinc-600 mt-0.5">
-                    2 minutes ago
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="px-4 py-3">
-              <div className="flex items-start gap-3">
-                <div className="p-1 rounded bg-white/[0.03] mt-0.5">
-                  <div className="size-1.5 rounded-full bg-zinc-700"></div>
-                </div>
-                <div>
-                  <p className="text-[11px] text-zinc-500">Scan completed</p>
-                  <p className="text-[10px] text-zinc-600 mt-0.5">
-                    5 minutes ago
-                  </p>
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-zinc-600">
+                {showActivity ? "Hide" : "Show"}
+              </span>
+              <button className="text-[10px] text-zinc-500 hover:text-zinc-400 transition-colors">
+                Clear all
+              </button>
             </div>
           </div>
+          {showActivity && (
+            <div className="divide-y divide-white/[0.04] max-h-48 overflow-y-auto">
+              {activityLogs.length === 0 ? (
+                <div className="px-4 py-6 text-center">
+                  <p className="text-[11px] text-zinc-500">No activity yet</p>
+                </div>
+              ) : (
+                activityLogs.map((log) => (
+                  <div key={log.id} className="px-4 py-3">
+                    <div className="flex items-start gap-3">
+                      <div className="p-1 rounded bg-white/[0.03] mt-0.5">
+                        <div
+                          className={`size-1.5 rounded-full ${
+                            log.level === "error"
+                              ? "bg-red-500"
+                              : log.level === "warn"
+                                ? "bg-amber-500"
+                                : "bg-zinc-700"
+                          }`}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-zinc-500">
+                          {log.message}
+                        </p>
+                        <p className="text-[10px] text-zinc-600 mt-0.5">
+                          {timeAgo(log.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </main>
     </div>
