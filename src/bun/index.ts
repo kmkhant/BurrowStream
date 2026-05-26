@@ -1,4 +1,6 @@
-import { BrowserWindow, Updater } from "electrobun/bun";
+import { BrowserView, BrowserWindow, Updater } from "electrobun/bun";
+
+import type { MainRPC } from "../shared/rpc/types";
 
 const DEV_SERVER_PORT = 5173;
 const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
@@ -23,6 +25,23 @@ async function getMainViewUrl(): Promise<string> {
 // Create the main application window
 const url = await getMainViewUrl();
 
+const mainRpc = BrowserView.defineRPC<MainRPC>({
+  maxRequestTime: 5000,
+  handlers: {
+    requests: {
+      ping: async () => "pong",
+    },
+    messages: {
+      log: ({ msg }) => {
+        console.log("[Webview]:", msg);
+      },
+      scanProgress: (data) => {
+        console.log("Scan progress:", data);
+      },
+    },
+  },
+});
+
 const mainWindow = new BrowserWindow({
   title: "Burrow Stream",
   url,
@@ -32,6 +51,18 @@ const mainWindow = new BrowserWindow({
     x: 200,
     y: 200,
   },
+  rpc: mainRpc,
+  sandbox: false,
+});
+
+// Handle window events
+mainWindow.on("close", () => {
+  console.log("Main window closed");
+  process.exit(0);
+});
+
+mainWindow.webview.on("dom-ready", () => {
+  console.log("Webview DOM ready");
 });
 
 console.log("Burrow has been started!");

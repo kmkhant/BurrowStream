@@ -1,5 +1,5 @@
 // src/views/admin/components/AdminPanel.tsx
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import {
   CirclePlay,
   CircleStop,
@@ -17,79 +17,54 @@ import {
 } from "lucide-react";
 
 import { useTheme } from "./hooks/useTheme";
+import { useRPC } from "./hooks/useRpc";
 
-// Mock data hooks - replace with actual RPC calls
-interface Folder {
-  id: number;
-  path: string;
-  name: string | null;
-  isActive: boolean;
-  lastScanAt: number | null;
-  totalVideos: number;
-  totalSize: number;
-}
-
-interface Video {
-  id: number;
-  title: string;
-  type: "movie" | "tv" | "unknown";
-  year?: number;
-  season?: number;
-  episode?: number[];
-  episodeTitle?: string;
-  quality?: string;
-  size: number;
-  extension: string;
-  isFavorite: boolean;
-  playCount: number;
-  lastPlayedAt?: number;
-  scannedAt: number;
-}
-
-interface ScanProgress {
-  processed: number;
-  total: number;
-  phase: "discovering" | "processing" | "complete" | "error";
-  currentFile?: string;
-}
-
-interface ActivityLog {
-  id: number;
-  level: "info" | "warn" | "error";
-  category: "scan" | "server" | "system" | "user";
-  message: string;
-  createdAt: number;
-}
+// import the electrobun instance
+import { electrobun } from "./lib/electrobun";
 
 export default function App() {
   // Theme State
   const { theme, resolved, toggleTheme } = useTheme();
 
-  // Server state
-  const [serverRunning, setServerRunning] = useState(false);
-  const [serverUrl, setServerUrl] = useState("");
-  const [uptime, _setUptime] = useState(0);
+  // RPC State
+  const {
+    ping,
+    folders,
+    videos,
+    videoStats,
+    isScanning,
+    scanProgress,
+    serverStatus,
+    activityLogs,
+    systemStats,
+    loading,
+    selectFolder,
+    removeFolder,
+    startScan,
+    cancelScan,
+    startServer,
+    stopServer,
+    clearLogs,
+  } = useRPC();
 
-  // Library state
-  const [folders, _setFolders] = useState<Folder[]>([]);
-  const [videos, _setVideos] = useState<Video[]>([]);
+  // Stats
+  const totalVideos = videoStats.total;
+  const totalSize = videoStats.totalSize;
+  const movieCount = videoStats.movies;
+  const tvCount = videoStats.tvShows;
+  const uptime = serverStatus.uptime;
+
+  // server on/off toggle
+  const toggleServer = () => {
+    serverStatus.running ? stopServer() : startServer();
+  };
+
+  // Library select state
   const [selectedType, setSelectedType] = useState<"all" | "movie" | "tv">(
     "all",
   );
 
-  // Scan state
-  const [isScanning, setIsScanning] = useState(false);
-  const [scanProgress, setScanProgress] = useState<ScanProgress | null>(null);
-
-  // Activity
-  const [activityLogs, _setActivityLogs] = useState<ActivityLog[]>([]);
   const [showActivity, setShowActivity] = useState(false);
-
-  // Stats
-  const totalVideos = videos.length;
-  const totalSize = videos.reduce((sum, v) => sum + v.size, 0);
-  const movieCount = videos.filter((v) => v.type === "movie").length;
-  const tvCount = videos.filter((v) => v.type === "tv").length;
 
   // Format bytes
   const formatBytes = (bytes: number) => {
@@ -112,40 +87,19 @@ export default function App() {
     return `${days}d ago`;
   };
 
-  // Server controls
-  const toggleServer = useCallback(async () => {
-    if (serverRunning) {
-      // await rpc.request("stopStreamingServer");
-      setServerRunning(false);
-    } else {
-      // await rpc.request("startStreamingServer");
-      setServerRunning(true);
-      setServerUrl("http://192.168.1.5:8080");
-    }
-  }, [serverRunning]);
+  // Folder Select Handlers
+  const handleAddFolder = async () => {
+    const result = await selectFolder();
 
-  // Scan controls
-  const startScan = useCallback(async () => {
-    setIsScanning(true);
-    setScanProgress({ processed: 0, total: 0, phase: "discovering" });
-    // await rpc.request("startScan");
-  }, []);
+    console.log(result);
 
-  const cancelScan = useCallback(async () => {
-    // await rpc.request("cancelScan");
-    setIsScanning(false);
-    setScanProgress(null);
-  }, []);
-
-  // Folder management
-  const addFolder = useCallback(async () => {
-    // const result = await rpc.request("selectFolder");
-    // await rpc.request("addWatchedFolder", { path: result.path });
-  }, []);
-
-  const removeFolder = useCallback(async (_folderId: number) => {
-    // await rpc.request("removeWatchedFolder", { id: folderId });
-  }, []);
+    // if (path) {
+    //   const result = await addFolder(path);
+    //   if (!result.success) {
+    //     console.error(result.error);
+    //   }
+    // }
+  };
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-zinc-100 font-sans antialiased">
@@ -160,7 +114,7 @@ export default function App() {
               </span>
             </div>
             <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/[0.04] text-[var(--text-tertiary)] border border-[var(--border-subtle)]">
-              v0.1.0
+              v0.0.1
             </span>
           </div>
 
@@ -273,25 +227,25 @@ export default function App() {
                   Streaming Server
                 </h3>
                 <p className="text-[11px] text-zinc-500 mt-0.5">
-                  {serverRunning
-                    ? `Streaming at ${serverUrl}`
+                  {serverStatus.running
+                    ? `Streaming at ${serverStatus.url}`
                     : "Host your videos on the local network"}
                 </p>
               </div>
               <button
                 onClick={toggleServer}
                 className={`flex items-center gap-2 text-[11px] font-medium px-3 py-1.5 rounded-md transition-colors ${
-                  serverRunning
+                  serverStatus.running
                     ? "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/10"
                     : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/10"
                 }`}
               >
-                {serverRunning ? (
+                {serverStatus.running ? (
                   <CircleStop className="size-4" />
                 ) : (
                   <CirclePlay className="size-4" />
                 )}
-                {serverRunning ? "Stop Server" : "Start Server"}
+                {serverStatus.running ? "Stop Server" : "Start Server"}
               </button>
             </div>
           </div>
@@ -324,6 +278,24 @@ export default function App() {
             </div>
           </div>
         </div>
+        <button
+          onClick={async () => {
+            console.log("Testing RPC ping...");
+            try {
+              // Access the RPC bridge from the browser context
+              // @ts-ignore
+              // const result = await electrobun.rpc.request.ping({});
+              const result = await ping();
+
+              console.log("✅ Ping result:", result);
+            } catch (error) {
+              console.error("❌ RPC error:", error);
+            }
+          }}
+          className="text-[11px] px-3 py-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] transition-colors"
+        >
+          Test RPC
+        </button>
 
         {/* Scan Progress Bar */}
         {scanProgress &&
@@ -396,7 +368,7 @@ export default function App() {
               </p>
             </div>
             <button
-              onClick={addFolder}
+              onClick={handleAddFolder}
               className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] transition-colors"
             >
               <Plus className="size-3" />

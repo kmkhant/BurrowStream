@@ -1,7 +1,8 @@
 .
+├── README.md
 ├── build
 │   └── dev-macos-arm64
-│       └── react-tailwind-vite-dev.app
+│       └── burrow-stream-dev.app
 │           └── Contents
 │               ├── Frameworks
 │               ├── Info.plist
@@ -9,8 +10,8 @@
 │               │   ├── bspatch
 │               │   ├── bun
 │               │   ├── launcher
-│               │   ├── libasar.dylib
 │               │   ├── libNativeWrapper.dylib
+│               │   ├── libasar.dylib
 │               │   └── zig-zstd
 │               └── Resources
 │                   ├── app
@@ -19,29 +20,66 @@
 │                   │   └── views
 │                   │       └── mainview
 │                   │           ├── assets
-│                   │           │   ├── index-DHECgmSg.css
-│                   │           │   └── index-kpR2qTjf.js
+│                   │           │   ├── index-DVLm_Xcs.css
+│                   │           │   └── index-E6qKQjru.js
 │                   │           └── index.html
 │                   ├── build.json
 │                   ├── main.js
 │                   └── version.json
 ├── bun.lock
+├── data
+│   ├── burrowstream.sqlite
+│   ├── burrowstream.sqlite-shm
+│   └── burrowstream.sqlite-wal
+├── docs
+│   ├── parse_and_scanner.md
+│   └── snippets.md
+├── drizzle.config.ts
 ├── electrobun.config.ts
 ├── llms.txt
 ├── package.json
 ├── postcss.config.js
-├── README.md
+├── scripts
+│   └── seeders
+│       └── seed.ts
 ├── src
 │   ├── bun
-│   │   └── index.ts
-│   └── mainview
-│       ├── App.tsx
-│       ├── index.css
-│       ├── index.html
-│       └── main.tsx
+│   │   ├── db
+│   │   │   ├── client.ts
+│   │   │   └── schema.ts
+│   │   ├── index.ts
+│   │   ├── media
+│   │   │   ├── parser.ts
+│   │   │   ├── scanner.ts
+│   │   │   └── watcher.ts
+│   │   ├── rpc
+│   │   │   ├── handlers.ts
+│   │   │   └── router.ts
+│   │   └── utils
+│   │       ├── cpu.ts
+│   │       └── paths.ts
+│   ├── mainview
+│   │   ├── App.tsx
+│   │   ├── hooks
+│   │   │   ├── useRpc.ts
+│   │   │   └── useTheme.ts
+│   │   ├── index.css
+│   │   ├── index.html
+│   │   └── main.tsx
+│   └── shared
+│       ├── rpc
+│       │   ├── definitions.ts
+│       │   ├── schema.ts
+│       │   └── types.ts
+│       └── types
+│           └── dom.d.ts
 ├── structure.txt
 ├── tailwind.config.js
+├── tests
+│   └── media
+│       ├── parser.test.ts
+│       └── scanner.test.ts
 ├── tsconfig.json
 └── vite.config.ts
 
-16 directories, 29 files
+30 directories, 53 files

@@ -2,6 +2,8 @@
 import { z } from "zod";
 
 // ── Folder Schemas ──
+export const SelectFolderSchema = z.object({});
+
 export const AddFolderSchema = z.object({
   path: z.string().min(1),
 });

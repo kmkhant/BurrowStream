@@ -1,5 +1,5 @@
-// src/views/admin/hooks/useRPC.ts
 import { useState, useEffect, useCallback } from "react";
+import { electrobun } from "../lib/electrobun";
 import type { RPCMethods, RPCMethodName } from "../../bun/rpc/router";
 import type {
   FolderResponse,
@@ -11,24 +11,26 @@ import type {
   VideoStatsResponse,
 } from "../../shared/rpc/definitions";
 
+declare global {
+  interface Window {
+    Electrobun?: {
+      rpc: {
+        request: Record<string, (args?: any) => Promise<any>>;
+        send: Record<string, (args?: any) => void>;
+        handlers: Record<string, Function>;
+        messages: Record<string, Function>;
+      };
+    };
+  }
+}
+
 // Type-safe RPC caller
 async function rpcCall<T extends RPCMethodName>(
   method: T,
   params?: RPCMethods[T]["request"],
 ): Promise<RPCMethods[T]["response"]> {
-  // ElectroBun RPC
-  if (typeof window !== "undefined" && "electrobun" in window) {
-    // @ts-ignore
-    return window.electrobun.rpc.request(method, params);
-  }
-
-  // HTTP fallback for development
-  const res = await fetch(`http://localhost:3000/api/rpc`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ method, params }),
-  });
-  return res.json();
+  // @ts-ignore
+  return electrobun.rpc.request[method](params);
 }
 
 export function useRPC() {
@@ -123,6 +125,11 @@ export function useRPC() {
     return () => clearInterval(interval);
   }, []);
 
+  // Ping
+  const ping = useCallback(async () => {
+    return await rpcCall("ping");
+  }, []);
+
   // Actions
   const addFolder = useCallback(
     async (path: string) => {
@@ -182,12 +189,18 @@ export function useRPC() {
     [loadAll],
   );
 
+  const selectFolder = useCallback(async () => {
+    const result = await rpcCall("selectFolder");
+    return result;
+  }, []);
+
   const clearLogs = useCallback(async () => {
     await rpcCall("clearActivityLogs");
     setActivityLogs([]);
   }, []);
 
   return {
+    ping,
     folders,
     videos,
     videoStats,
@@ -197,6 +210,7 @@ export function useRPC() {
     activityLogs,
     systemStats,
     loading,
+    selectFolder,
     addFolder,
     removeFolder,
     startScan,

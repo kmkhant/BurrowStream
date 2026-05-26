@@ -1,3 +1,5 @@
+import type { RPCSchema } from "electrobun/bun";
+
 export interface Folder {
   id: number;
   path: string;
@@ -63,3 +65,22 @@ export interface SystemStats {
   memory: number;
   uptime: number;
 }
+
+export type MainRPC = {
+  bun: RPCSchema<{
+    requests: {
+      ping: {
+        params: Record<string, never>;
+        response: string;
+      };
+    };
+    messages: {
+      log: { msg: string };
+      scanProgress: { phase: string; processed: number; total: number };
+    };
+  }>;
+  webview: RPCSchema<{
+    requests: Record<string, never>;
+    messages: Record<string, never>;
+  }>;
+};

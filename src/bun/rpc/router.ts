@@ -10,6 +10,7 @@ import {
   StartServerRequest,
   GetActivityLogsRequest,
   GetScanHistoryRequest,
+  SelectFolderRequest,
 } from "../../shared/rpc/definitions";
 
 import type {
@@ -29,10 +30,20 @@ import type {
 // Maps method names to their request/response types
 
 export interface RPCMethods {
+  // Ping
+  ping: {
+    request: void;
+    response: string;
+  };
+
   // Folder Management
   getFolders: {
     request: void;
     response: FolderResponse[];
+  };
+  selectFolder: {
+    request: void;
+    response: { canceled: boolean; path: string | null };
   };
   addFolder: {
     request: z.infer<typeof AddFolderRequest>;
@@ -120,6 +131,7 @@ export interface RPCMethods {
 
 export const RequestSchemas = {
   addFolder: AddFolderRequest,
+  selectFolder: SelectFolderRequest,
   removeFolder: RemoveFolderRequest,
   toggleFolderActive: ToggleFolderActiveRequest,
   getVideos: GetVideosRequest,

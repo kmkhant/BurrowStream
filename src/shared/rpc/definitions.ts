@@ -7,6 +7,8 @@ export const AddFolderRequest = z.object({
   path: z.string().min(1),
 });
 
+export const SelectFolderRequest = z.object({});
+
 export const RemoveFolderRequest = z.object({
   id: z.number(),
 });

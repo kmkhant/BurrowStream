@@ -1,10 +1,11 @@
 import { z } from "zod";
+import { join } from "node:path";
+import { homedir } from "node:os";
+import { platform } from "node:os";
 
-import type { RPCMethodName } from "./router";
 import type {
   AddFolderRequest,
   RemoveFolderRequest,
-  ScanProgressResponse,
   GetVideosRequest,
 } from "../../shared/rpc/definitions";
 
@@ -16,20 +17,14 @@ import { eq, desc, like, sql } from "drizzle-orm";
 import { cpuMonitor } from "../utils/cpu";
 import { RequestSchemas } from "./router";
 
+import { Utils } from "electrobun";
+
 const scanner = new MediaScanner();
 const parser = new MediaParser();
 
 // Track server state
 let streamingServer: any = null;
 let serverStartTime: number | null = null;
-
-// Type-safe handler wrapper
-function createHandler<T extends RPCMethodName>(
-  method: T,
-  handler: (params: any, context?: any) => Promise<any>,
-) {
-  return handler;
-}
 
 export function registerHandlers(router: any) {
   // Start CPU monitoring
@@ -45,6 +40,35 @@ export function registerHandlers(router: any) {
       .from(watchedFolders)
       .orderBy(desc(watchedFolders.createdAt))
       .all();
+  });
+
+  router.handle("selectFolder", async () => {
+    console.log("=== selectFolder called ===");
+
+    const defaultPaths: Record<string, string> = {
+      darwin: join(homedir(), "Desktop"),
+      win32: join(homedir(), "Desktop"),
+      linux: homedir(),
+    };
+
+    const startingFolder = defaultPaths[platform()] || homedir();
+
+    // This returns an array of selected paths
+    const chosenPaths = await Utils.openFileDialog({
+      startingFolder,
+      allowedFileTypes: "*",
+      canChooseFiles: false, // We want folders
+      canChooseDirectory: true, // Allow folder selection
+      allowsMultipleSelection: false, // Single folder
+    });
+
+    console.log("chosen paths:", chosenPaths);
+
+    if (!chosenPaths || chosenPaths.length === 0) {
+      return { canceled: true, path: null };
+    }
+
+    return { canceled: false, path: chosenPaths[0] };
   });
 
   router.handle(
