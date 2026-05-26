@@ -26,6 +26,44 @@ const parser = new MediaParser();
 let streamingServer: any = null;
 let serverStartTime: number | null = null;
 
+async function ping() {
+  return "pong";
+}
+
+async function selectFolder() {
+  console.log("=== selectFolder called ===");
+
+  const defaultPaths: Record<string, string> = {
+    darwin: join(homedir(), "Desktop"),
+    win32: join(homedir(), "Desktop"),
+    linux: homedir(),
+  };
+
+  const startingFolder = defaultPaths[platform()] || homedir();
+
+  // This returns an array of selected paths
+  const chosenPaths = await Utils.openFileDialog({
+    startingFolder,
+    allowedFileTypes: "*",
+    canChooseFiles: false, // We want folders
+    canChooseDirectory: true, // Allow folder selection
+    allowsMultipleSelection: false, // Single folder
+  });
+
+  console.log("chosen paths:", chosenPaths);
+
+  if (!chosenPaths || chosenPaths.length === 0) {
+    return { canceled: true, path: null };
+  }
+
+  return { canceled: false, path: chosenPaths[0] };
+}
+
+export const rpcHandlers = {
+  ping,
+  selectFolder,
+};
+
 export function registerHandlers(router: any) {
   // Start CPU monitoring
   cpuMonitor.start(2000); // Update every 2 seconds

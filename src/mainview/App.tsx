@@ -19,9 +19,6 @@ import {
 import { useTheme } from "./hooks/useTheme";
 import { useRPC } from "./hooks/useRpc";
 
-// import the electrobun instance
-import { electrobun } from "./lib/electrobun";
-
 export default function App() {
   // Theme State
   const { theme, resolved, toggleTheme } = useTheme();

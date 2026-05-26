@@ -6,8 +6,13 @@ import { getAppDataDir, ensureDir } from "../utils/paths";
 import * as schema from "./schema";
 
 const APP_NAME = "BurrowStream";
-const DATA_DIR = ensureDir(getAppDataDir(APP_NAME));
+const APP_DATA_DIR = getAppDataDir(APP_NAME);
+const DATA_DIR = ensureDir(APP_DATA_DIR);
 const DB_PATH = join(DATA_DIR, "burrowstream.sqlite");
+
+console.log("APP_DATA_DIR:", APP_DATA_DIR);
+console.log("DATA_DIR:", DATA_DIR);
+console.log("DB_PATH:", DB_PATH);
 
 const sqlite = new Database(DB_PATH);
 sqlite.run("PRAGMA journal_mode=WAL;");

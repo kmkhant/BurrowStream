@@ -62,10 +62,6 @@ export function getCacheDir(appName: string = "BurrowStream"): string {
 
 export function ensureDir(dir: string): string {
   // if dev, use local data directory
-  if (process.env.NODE_ENV !== "production") {
-    return join(process.cwd(), "data");
-  }
-
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
   }

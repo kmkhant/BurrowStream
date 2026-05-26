@@ -98,7 +98,7 @@ export function useRPC() {
   useEffect(() => {
     if (typeof window !== "undefined" && "electrobun" in window) {
       // @ts-ignore
-      const unsubscribe = window.electrobun.rpc.on(
+      const unsubscribe = electrobun.rpc.on(
         "scanProgress",
         (progress: ScanProgressResponse) => {
           setScanProgress(progress);
@@ -131,6 +131,11 @@ export function useRPC() {
   }, []);
 
   // Actions
+  const selectFolder = useCallback(async () => {
+    const result = await rpcCall("selectFolder");
+    return result;
+  }, []);
+
   const addFolder = useCallback(
     async (path: string) => {
       const result = await rpcCall("addFolder", { path });
@@ -188,11 +193,6 @@ export function useRPC() {
     },
     [loadAll],
   );
-
-  const selectFolder = useCallback(async () => {
-    const result = await rpcCall("selectFolder");
-    return result;
-  }, []);
 
   const clearLogs = useCallback(async () => {
     await rpcCall("clearActivityLogs");

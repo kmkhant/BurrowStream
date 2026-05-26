@@ -73,6 +73,10 @@ export type MainRPC = {
         params: Record<string, never>;
         response: string;
       };
+      selectFolder: {
+        params: Record<string, never>;
+        response: { canceled: boolean; path: string | null };
+      };
     };
     messages: {
       log: { msg: string };

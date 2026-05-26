@@ -1,6 +1,7 @@
 import { BrowserView, BrowserWindow, Updater } from "electrobun/bun";
 
 import type { MainRPC } from "../shared/rpc/types";
+import { rpcHandlers } from "./rpc/handlers";
 
 const DEV_SERVER_PORT = 5173;
 const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
@@ -29,7 +30,8 @@ const mainRpc = BrowserView.defineRPC<MainRPC>({
   maxRequestTime: 5000,
   handlers: {
     requests: {
-      ping: async () => "pong",
+      ping: rpcHandlers.ping,
+      selectFolder: rpcHandlers.selectFolder,
     },
     messages: {
       log: ({ msg }) => {
