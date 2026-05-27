@@ -1,10 +1,12 @@
 import { z } from "zod";
-import { join } from "node:path";
-import { homedir } from "node:os";
-import { platform } from "node:os";
+
+// System handlers
+import { getSystemStats } from "./handlers/system";
+
+// Folder handlers
+import { getFolders, addFolder, removeFolder } from "./handlers/folder";
 
 import type {
-  AddFolderRequest,
   RemoveFolderRequest,
   GetVideosRequest,
 } from "../../shared/rpc/definitions";
@@ -17,8 +19,6 @@ import { eq, desc, like, sql } from "drizzle-orm";
 import { cpuMonitor } from "../utils/cpu";
 import { RequestSchemas } from "./router";
 
-import { Utils } from "electrobun";
-
 const scanner = new MediaScanner();
 const parser = new MediaParser();
 
@@ -30,125 +30,21 @@ async function ping() {
   return "pong";
 }
 
-async function selectFolder() {
-  console.log("=== selectFolder called ===");
-
-  const defaultPaths: Record<string, string> = {
-    darwin: join(homedir(), "Desktop"),
-    win32: join(homedir(), "Desktop"),
-    linux: homedir(),
-  };
-
-  const startingFolder = defaultPaths[platform()] || homedir();
-
-  // This returns an array of selected paths
-  const chosenPaths = await Utils.openFileDialog({
-    startingFolder,
-    allowedFileTypes: "*",
-    canChooseFiles: false, // We want folders
-    canChooseDirectory: true, // Allow folder selection
-    allowsMultipleSelection: false, // Single folder
-  });
-
-  console.log("chosen paths:", chosenPaths);
-
-  if (!chosenPaths || chosenPaths.length === 0) {
-    return { canceled: true, path: null };
-  }
-
-  return { canceled: false, path: chosenPaths[0] };
-}
-
 export const rpcHandlers = {
   ping,
-  selectFolder,
+
+  // system handlers
+  getSystemStats,
+
+  // folder handlers
+  getFolders,
+  addFolder,
+  removeFolder,
 };
 
 export function registerHandlers(router: any) {
   // Start CPU monitoring
   cpuMonitor.start(2000); // Update every 2 seconds
-
-  // ═══════════════════════════════════════════
-  // Folder Management
-  // ═══════════════════════════════════════════
-
-  router.handle("getFolders", async () => {
-    return db
-      .select()
-      .from(watchedFolders)
-      .orderBy(desc(watchedFolders.createdAt))
-      .all();
-  });
-
-  router.handle("selectFolder", async () => {
-    console.log("=== selectFolder called ===");
-
-    const defaultPaths: Record<string, string> = {
-      darwin: join(homedir(), "Desktop"),
-      win32: join(homedir(), "Desktop"),
-      linux: homedir(),
-    };
-
-    const startingFolder = defaultPaths[platform()] || homedir();
-
-    // This returns an array of selected paths
-    const chosenPaths = await Utils.openFileDialog({
-      startingFolder,
-      allowedFileTypes: "*",
-      canChooseFiles: false, // We want folders
-      canChooseDirectory: true, // Allow folder selection
-      allowsMultipleSelection: false, // Single folder
-    });
-
-    console.log("chosen paths:", chosenPaths);
-
-    if (!chosenPaths || chosenPaths.length === 0) {
-      return { canceled: true, path: null };
-    }
-
-    return { canceled: false, path: chosenPaths[0] };
-  });
-
-  router.handle(
-    "addFolder",
-    async (params: z.infer<typeof AddFolderRequest>) => {
-      const parsed = RequestSchemas.addFolder.parse(params);
-
-      const existing = db
-        .select()
-        .from(watchedFolders)
-        .where(eq(watchedFolders.path, parsed.path))
-        .get();
-
-      if (existing) {
-        return { success: false, error: "Folder already being watched" };
-      }
-
-      const now = Date.now();
-      const folder = db
-        .insert(watchedFolders)
-        .values({
-          path: parsed.path,
-          name: parsed.path.split("/").pop() || parsed.path,
-          isActive: true,
-          createdAt: now,
-          updatedAt: now,
-        })
-        .returning()
-        .get();
-
-      db.insert(activityLog)
-        .values({
-          level: "info",
-          category: "user",
-          message: `Added folder: ${folder.name}`,
-          createdAt: now,
-        })
-        .run();
-
-      return { success: true, folder };
-    },
-  );
 
   router.handle(
     "removeFolder",
@@ -580,25 +476,5 @@ export function registerHandlers(router: any) {
   router.handle("clearActivityLogs", async () => {
     db.delete(activityLog).run();
     return { success: true };
-  });
-
-  // ═══════════════════════════════════════════
-  // System
-  // ═══════════════════════════════════════════
-
-  router.handle("getSystemStats", async () => {
-    const usage = cpuMonitor.getUsage();
-    const mem = process.memoryUsage();
-
-    return {
-      cpu: usage.cpu,
-      memory: Math.round(mem.heapUsed / (1024 * 1024)),
-      totalMemory: usage.totalMemory,
-      uptime: process.uptime(),
-      platform: process.platform,
-      bunVersion: Bun.version,
-      cpuCores: usage.cpuCores,
-      cpuModel: usage.cpuModel,
-    };
   });
 }

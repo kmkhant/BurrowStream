@@ -1,6 +1,7 @@
 // src/shared/rpc/router.ts
 import { z } from "zod";
 import {
+  GetFoldersRequest,
   AddFolderRequest,
   RemoveFolderRequest,
   ToggleFolderActiveRequest,
@@ -10,7 +11,6 @@ import {
   StartServerRequest,
   GetActivityLogsRequest,
   GetScanHistoryRequest,
-  SelectFolderRequest,
 } from "../../shared/rpc/definitions";
 
 import type {
@@ -40,10 +40,6 @@ export interface RPCMethods {
   getFolders: {
     request: void;
     response: FolderResponse[];
-  };
-  selectFolder: {
-    request: void;
-    response: { canceled: boolean; path: string | null };
   };
   addFolder: {
     request: z.infer<typeof AddFolderRequest>;
@@ -130,8 +126,8 @@ export interface RPCMethods {
 // ── Request Schemas Map (for validation) ──
 
 export const RequestSchemas = {
+  getFolders: GetFoldersRequest,
   addFolder: AddFolderRequest,
-  selectFolder: SelectFolderRequest,
   removeFolder: RemoveFolderRequest,
   toggleFolderActive: ToggleFolderActiveRequest,
   getVideos: GetVideosRequest,

@@ -1,13 +1,11 @@
-import type { RPCSchema } from "electrobun/bun";
-
 export interface Folder {
   id: number;
   path: string;
   name: string | null;
-  isActive: boolean;
+  isActive: boolean | null;
   lastScanAt: number | null;
-  totalVideos: number;
-  totalSize: number;
+  totalVideos: number | null;
+  totalSize: number | null;
 }
 
 export interface Video {
@@ -65,26 +63,3 @@ export interface SystemStats {
   memory: number;
   uptime: number;
 }
-
-export type MainRPC = {
-  bun: RPCSchema<{
-    requests: {
-      ping: {
-        params: Record<string, never>;
-        response: string;
-      };
-      selectFolder: {
-        params: Record<string, never>;
-        response: { canceled: boolean; path: string | null };
-      };
-    };
-    messages: {
-      log: { msg: string };
-      scanProgress: { phase: string; processed: number; total: number };
-    };
-  }>;
-  webview: RPCSchema<{
-    requests: Record<string, never>;
-    messages: Record<string, never>;
-  }>;
-};

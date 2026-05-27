@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { electrobun } from "../lib/electrobun";
-import type { RPCMethods, RPCMethodName } from "../../bun/rpc/router";
+
 import type {
   FolderResponse,
   VideoResponse,
@@ -10,6 +10,8 @@ import type {
   ActivityLogResponse,
   VideoStatsResponse,
 } from "../../shared/rpc/definitions";
+
+import type { RPCMethods, RPCMethodName } from "../../bun/rpc/router";
 
 declare global {
   interface Window {
@@ -67,22 +69,9 @@ export function useRPC() {
 
   const loadAll = useCallback(async () => {
     try {
-      const [foldersData, videosData, status, logs, stats, vStats] =
-        await Promise.all([
-          rpcCall("getFolders"),
-          rpcCall("getVideos", { limit: 50, offset: 0 }),
-          rpcCall("getServerStatus"),
-          rpcCall("getActivityLogs", { limit: 20 }),
-          rpcCall("getSystemStats"),
-          rpcCall("getVideoStats"),
-        ]);
+      const [foldersData] = await Promise.all([rpcCall("getFolders")]);
 
       setFolders(foldersData);
-      setVideos(videosData.data);
-      setServerStatus(status);
-      setActivityLogs(logs);
-      setSystemStats(stats);
-      setVideoStats(vStats);
     } catch (error) {
       console.error("Failed to load data:", error);
     } finally {
@@ -130,29 +119,23 @@ export function useRPC() {
     return await rpcCall("ping");
   }, []);
 
-  // Actions
-  const selectFolder = useCallback(async () => {
-    const result = await rpcCall("selectFolder");
+  // Folder Actions
+  const getFolders = useCallback(async () => {
+    const result = await rpcCall("getFolders");
+
+    console.log("Folders:", result);
+    return [];
+  }, []);
+
+  const addFolder = useCallback(async () => {
+    const result = await rpcCall("addFolder");
     return result;
   }, []);
 
-  const addFolder = useCallback(
-    async (path: string) => {
-      const result = await rpcCall("addFolder", { path });
-      if (result.success) await loadAll();
-      return result;
-    },
-    [loadAll],
-  );
-
-  const removeFolder = useCallback(
-    async (id: number) => {
-      const result = await rpcCall("removeFolder", { id });
-      if (result.success) await loadAll();
-      return result;
-    },
-    [loadAll],
-  );
+  const removeFolder = useCallback(async (id: number) => {
+    const result = await rpcCall("removeFolder", { id });
+    return result;
+  }, []);
 
   const startScan = useCallback(async () => {
     setIsScanning(true);
@@ -203,6 +186,7 @@ export function useRPC() {
     ping,
     folders,
     videos,
+    setVideos,
     videoStats,
     isScanning,
     scanProgress,
@@ -210,7 +194,7 @@ export function useRPC() {
     activityLogs,
     systemStats,
     loading,
-    selectFolder,
+    getFolders,
     addFolder,
     removeFolder,
     startScan,

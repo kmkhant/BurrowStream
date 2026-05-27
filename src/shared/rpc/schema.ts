@@ -1,12 +1,10 @@
 // src/shared/rpc/schema.ts
+import { RPCSchema } from "electrobun";
 import { z } from "zod";
+import { Folder } from "./types";
 
 // ── Folder Schemas ──
-export const SelectFolderSchema = z.object({});
-
-export const AddFolderSchema = z.object({
-  path: z.string().min(1),
-});
+export const AddFolderSchema = z.object({});
 
 export const RemoveFolderSchema = z.object({
   id: z.number(),
@@ -49,3 +47,30 @@ export const GetActivityLogsSchema = z.object({
 });
 
 export const ClearActivityLogsSchema = z.object({});
+
+export type MainRPC = {
+  bun: RPCSchema<{
+    requests: {
+      ping: {
+        params: Record<string, never>;
+        response: string;
+      };
+      getFolders: {
+        params: Record<string, never>;
+        response: Folder[];
+      };
+      addFolder: {
+        params: Record<string, never>;
+        response: { success: boolean; folder?: Folder };
+      };
+    };
+    messages: {
+      log: { msg: string };
+      scanProgress: { phase: string; processed: number; total: number };
+    };
+  }>;
+  webview: RPCSchema<{
+    requests: Record<string, never>;
+    messages: Record<string, never>;
+  }>;
+};

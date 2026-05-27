@@ -2,12 +2,8 @@
 import { z } from "zod";
 
 // ── Request Schemas ──
-
-export const AddFolderRequest = z.object({
-  path: z.string().min(1),
-});
-
-export const SelectFolderRequest = z.object({});
+export const GetFoldersRequest = z.object({});
+export const AddFolderRequest = z.object({});
 
 export const RemoveFolderRequest = z.object({
   id: z.number(),
@@ -49,7 +45,6 @@ export const GetScanHistoryRequest = z.object({
 });
 
 // ── Response Types ──
-
 export interface FolderResponse {
   id: number;
   path: string;

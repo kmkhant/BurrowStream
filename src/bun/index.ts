@@ -1,7 +1,6 @@
-import { BrowserView, BrowserWindow, Updater } from "electrobun/bun";
+import { BrowserWindow, Updater } from "electrobun/bun";
 
-import type { MainRPC } from "../shared/rpc/types";
-import { rpcHandlers } from "./rpc/handlers";
+import { mainRpc } from "../shared/rpc";
 
 const DEV_SERVER_PORT = 5173;
 const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
@@ -25,24 +24,6 @@ async function getMainViewUrl(): Promise<string> {
 
 // Create the main application window
 const url = await getMainViewUrl();
-
-const mainRpc = BrowserView.defineRPC<MainRPC>({
-  maxRequestTime: 5000,
-  handlers: {
-    requests: {
-      ping: rpcHandlers.ping,
-      selectFolder: rpcHandlers.selectFolder,
-    },
-    messages: {
-      log: ({ msg }) => {
-        console.log("[Webview]:", msg);
-      },
-      scanProgress: (data) => {
-        console.log("Scan progress:", data);
-      },
-    },
-  },
-});
 
 const mainWindow = new BrowserWindow({
   title: "Burrow Stream",

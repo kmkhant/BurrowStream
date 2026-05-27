@@ -3,8 +3,18 @@ import { join } from "node:path";
 import { homedir } from "node:os";
 import { existsSync, mkdirSync } from "node:fs";
 
+const isDev = process.env.NODE_ENV !== "production";
+
 export function getAppDataDir(appName: string = "BurrowStream"): string {
   const platform = process.platform;
+
+  if (isDev) {
+    if (!process.env.DATA_PATH) {
+      throw new Error("DATA_PATH is not set");
+    }
+
+    return process.env.DATA_PATH;
+  }
 
   switch (platform) {
     case "darwin":

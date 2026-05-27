@@ -1,5 +1,5 @@
 // src/views/admin/components/AdminPanel.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CirclePlay,
   CircleStop,
@@ -18,10 +18,13 @@ import {
 
 import { useTheme } from "./hooks/useTheme";
 import { useRPC } from "./hooks/useRpc";
+import { cn } from "./lib/utils";
 
 export default function App() {
   // Theme State
   const { theme, resolved, toggleTheme } = useTheme();
+
+  const isDark = resolved === "dark";
 
   // RPC State
   const {
@@ -35,7 +38,8 @@ export default function App() {
     activityLogs,
     systemStats,
     loading,
-    selectFolder,
+    getFolders,
+    addFolder,
     removeFolder,
     startScan,
     cancelScan,
@@ -86,7 +90,7 @@ export default function App() {
 
   // Folder Select Handlers
   const handleAddFolder = async () => {
-    const result = await selectFolder();
+    const result = await addFolder();
 
     console.log(result);
 
@@ -148,7 +152,7 @@ export default function App() {
       <main className="max-w-5xl mx-auto p-6 space-y-4">
         {/* Stats Grid - Example of updated card */}
         <div className="grid grid-cols-4 gap-3">
-          <div className=" rounded-lg p-4 hover:bg-[var(--bg-hover)] transition-colors">
+          <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-4 hover:bg-[var(--bg-hover)] transition-colors">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-md bg-[var(--bg)]">
                 <Film className="size-3.5 text-[var(--text-secondary)]" />
@@ -275,24 +279,6 @@ export default function App() {
             </div>
           </div>
         </div>
-        <button
-          onClick={async () => {
-            console.log("Testing RPC ping...");
-            try {
-              // Access the RPC bridge from the browser context
-              // @ts-ignore
-              // const result = await electrobun.rpc.request.ping({});
-              const result = await ping();
-
-              console.log("✅ Ping result:", result);
-            } catch (error) {
-              console.error("❌ RPC error:", error);
-            }
-          }}
-          className="text-[11px] px-3 py-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] transition-colors"
-        >
-          Test RPC
-        </button>
 
         {/* Scan Progress Bar */}
         {scanProgress &&
@@ -351,114 +337,36 @@ export default function App() {
           ))}
         </div>
 
-        {/* Media Library */}
-        <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg overflow-hidden">
-          <div className="flex items-center justify-between p-4 border-b border-white/[0.04]">
-            <div>
-              <h3 className="text-xs font-medium text-[var(--text-primary)]">
-                Media Library
-              </h3>
-              <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">
-                {videos.length === 0
-                  ? "Your video collection"
-                  : `${videos.length} video${videos.length !== 1 ? "s" : ""}`}
-              </p>
-            </div>
-            <button
-              onClick={handleAddFolder}
-              className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] transition-colors"
-            >
-              <Plus className="size-3" />
-              Add Folder
-            </button>
-          </div>
-
-          {videos.length === 0 ? (
-            /* Empty State */
-            <div className="flex flex-col items-center justify-center py-12 px-4">
-              <div className="p-3 rounded-full bg-white/[0.03] mb-3">
-                <Film className="size-5 text-zinc-600" />
-              </div>
-              <p className="text-xs text-zinc-500 mb-2">No videos added yet</p>
-              <p className="text-[11px] text-zinc-600 text-center max-w-sm">
-                Add folders containing your video files to start streaming them
-                to your devices
-              </p>
-            </div>
-          ) : (
-            /* Video Grid */
-            <div className="divide-y divide-white/[0.04]">
-              {videos
-                .filter(
-                  (v) => selectedType === "all" || v.type === selectedType,
-                )
-                .slice(0, 10)
-                .map((video) => (
-                  <div
-                    key={video.id}
-                    className="flex items-center justify-between px-4 py-3 hover:bg-white/[0.02] transition-colors"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="p-1.5 rounded bg-white/[0.03]">
-                        {video.type === "movie" ? (
-                          <Film className="size-3.5 text-zinc-500" />
-                        ) : (
-                          <Tv className="size-3.5 text-zinc-500" />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs text-zinc-300 truncate">
-                          {video.title}
-                        </p>
-                        <div className="flex items-center gap-2 text-[10px] text-zinc-500">
-                          {video.year && <span>{video.year}</span>}
-                          {video.season && video.episode && (
-                            <span>
-                              S{video.season.toString().padStart(2, "0")}E
-                              {video.episode[0].toString().padStart(2, "0")}
-                            </span>
-                          )}
-                          {video.quality && (
-                            <span className="px-1 py-0.5 rounded bg-white/[0.04] text-zinc-600">
-                              {video.quality}
-                            </span>
-                          )}
-                          <span>{formatBytes(video.size)}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {video.isFavorite && (
-                        <Heart className="size-3.5 text-red-400 fill-red-400" />
-                      )}
-                      {video.playCount > 0 && (
-                        <span className="text-[10px] text-zinc-600">
-                          {video.playCount}x
-                        </span>
-                      )}
-                      <span className="text-[10px] text-zinc-600">
-                        {timeAgo(video.scannedAt)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
-
         {/* Watched Folders */}
         {folders.length > 0 && (
           <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-white/[0.04]">
               <div>
-                <h3 className="text-xs font-medium text-zinc-300">
+                <h3
+                  className={cn(
+                    isDark ? "text-zinc-400" : "text-zinc-600",
+                    "text-xs font-medium",
+                  )}
+                >
                   Watched Folders
                 </h3>
-                <p className="text-[10px] text-zinc-500 mt-0.5">
+                <p
+                  className={cn(
+                    isDark ? "text-zinc-400" : "text-zinc-600",
+                    "text-[10px] mt-0.5",
+                  )}
+                >
                   {folders.length} folder{folders.length !== 1 ? "s" : ""} being
                   monitored
                 </p>
               </div>
+              <button
+                onClick={handleAddFolder}
+                className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] transition-colors"
+              >
+                <Plus className="size-3" />
+                Add Folder
+              </button>
             </div>
             <div className="divide-y divide-white/[0.04]">
               {folders.map((folder) => (
@@ -469,10 +377,17 @@ export default function App() {
                   <div className="flex items-center gap-3 min-w-0">
                     <FolderOpen className="size-3.5 text-zinc-500 shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-xs text-zinc-300 truncate">
+                      <p
+                        className={cn(
+                          isDark ? "text-zinc-400" : "text-zinc-600",
+                          "text-xs truncate",
+                        )}
+                      >
                         {folder.name || folder.path.split("/").pop()}
                       </p>
-                      <p className="text-[10px] text-zinc-600 truncate">
+                      <p
+                        className={`text-[10px] ${isDark ? "text-zinc-400" : "text-zinc-600"} truncate`}
+                      >
                         {folder.path}
                       </p>
                     </div>
