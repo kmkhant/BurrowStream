@@ -1,4 +1,3 @@
-// src/shared/rpc/router.ts
 import { z } from "zod";
 import {
   GetFoldersRequest,
@@ -24,6 +23,7 @@ import type {
   ActivityLogResponse,
   SuccessResponse,
   PaginatedResponse,
+  StartStreamingServerResponse,
 } from "../../shared/rpc/definitions";
 
 // ── RPC Method Map ──
@@ -98,7 +98,7 @@ export interface RPCMethods {
   };
   startServer: {
     request: z.infer<typeof StartServerRequest>;
-    response: SuccessResponse & { port?: number };
+    response: StartStreamingServerResponse;
   };
   stopServer: {
     request: void;
@@ -132,6 +132,8 @@ export interface RPCMethods {
 
 export const RequestSchemas = {
   testScanMessage: z.object({}),
+
+  // folder requests
   getFolders: GetFoldersRequest,
   addFolder: AddFolderRequest,
   removeFolder: RemoveFolderRequest,
@@ -139,6 +141,8 @@ export const RequestSchemas = {
   getVideos: GetVideosRequest,
   getVideo: GetVideoRequest,
   updateVideo: UpdateVideoRequest,
+
+  // streaming server requests
   startServer: StartServerRequest,
   getActivityLogs: GetActivityLogsRequest,
   getScanHistory: GetScanHistoryRequest,

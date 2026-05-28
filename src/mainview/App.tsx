@@ -1,5 +1,5 @@
 // src/views/admin/components/AdminPanel.tsx
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   CirclePlay,
   CircleStop,
@@ -8,7 +8,6 @@ import {
   Scan,
   Trash2,
   HardDrive,
-  Clock,
   Plus,
   Moon,
   Sun,
@@ -30,7 +29,6 @@ export default function App() {
     videoStats,
     isScanning,
     scanProgress,
-    serverStatus,
     activityLogs,
     systemStats,
     addFolder,
@@ -39,18 +37,30 @@ export default function App() {
     cancelScan,
     startServer,
     stopServer,
+    streamingServerStatus,
+    refreshAll,
   } = useRPC();
+
+  // refresh the app
+  useEffect(() => {
+    refreshAll();
+  }, [refreshAll]);
 
   // Stats
   const totalVideos = videoStats.total;
   const totalSize = videoStats.totalSize;
   const movieCount = videoStats.movies;
   const tvCount = videoStats.tvShows;
-  const uptime = serverStatus.uptime;
 
   // server on/off toggle
-  const toggleServer = () => {
-    serverStatus.running ? stopServer() : startServer();
+  const streamingServerUrl = `http://${streamingServerStatus.ip}:${streamingServerStatus.port}`;
+
+  const handleToggleServer = async () => {
+    if (streamingServerStatus.running) {
+      await stopServer();
+    } else {
+      await startServer();
+    }
   };
 
   // Library select state
@@ -217,23 +227,6 @@ export default function App() {
               </div>
             </div>
           </div>
-
-          <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-4 hover:bg-white/[0.03] transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-md bg-white/[0.03]">
-                <Clock className="size-3.5 text-zinc-400" />
-              </div>
-              <div>
-                <div className="text-xs font-medium text-[var(--text-primary)]">
-                  {Math.floor(uptime / 3600)}h{" "}
-                  {Math.floor((uptime % 3600) / 60)}m
-                </div>
-                <div className="text-[10px] text-[var(--text-secondary)]">
-                  Uptime
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Quick Actions */}
@@ -246,25 +239,25 @@ export default function App() {
                   Streaming Server
                 </h3>
                 <p className="text-[11px] text-zinc-500 mt-0.5">
-                  {serverStatus.running
-                    ? `Streaming at ${serverStatus.url}`
+                  {streamingServerStatus.running
+                    ? `Streaming at ${streamingServerUrl}`
                     : "Host your videos on the local network"}
                 </p>
               </div>
               <button
-                onClick={toggleServer}
+                onClick={handleToggleServer}
                 className={`flex items-center gap-2 text-[11px] font-medium px-3 py-1.5 rounded-md transition-colors ${
-                  serverStatus.running
+                  streamingServerStatus.running
                     ? "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/10"
                     : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/10"
                 }`}
               >
-                {serverStatus.running ? (
+                {streamingServerStatus.running ? (
                   <CircleStop className="size-4" />
                 ) : (
                   <CirclePlay className="size-4" />
                 )}
-                {serverStatus.running ? "Stop Server" : "Start Server"}
+                {streamingServerStatus.running ? "Stop Server" : "Start Server"}
               </button>
             </div>
           </div>

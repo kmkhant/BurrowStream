@@ -94,7 +94,15 @@ export interface ServerStatusResponse {
   running: boolean;
   port: number;
   uptime: number;
-  url?: string;
+  url: string;
+  ip: string;
+}
+
+// Streaming Server
+export interface StartStreamingServerResponse {
+  success: boolean;
+  port: number;
+  ip: string;
 }
 
 export interface SystemStatsResponse {

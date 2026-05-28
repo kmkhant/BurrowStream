@@ -42,12 +42,47 @@ export function useRPC() {
   const [scanProgress, setScanProgress] = useState<ScanProgressResponse | null>(
     null,
   );
-  const [serverStatus, setServerStatus] = useState<ServerStatusResponse>({
+
+  const [activityLogs, setActivityLogs] = useState<ActivityLogResponse[]>([]);
+
+  // streaming server status
+  const [streamingServerStatus, setStreamingServerStatus] = useState({
     running: false,
     port: 8080,
-    uptime: 0,
+    ip: "localhost",
   });
-  const [activityLogs, setActivityLogs] = useState<ActivityLogResponse[]>([]);
+
+  const startServer = useCallback(async (port?: number) => {
+    const result = await rpcCall("startServer", { port: port || 8080 });
+
+    // set the status
+    setStreamingServerStatus({
+      running: result.success,
+      port: result.port || 8080,
+      ip: (result.ip as string) || "localhost",
+    });
+  }, []);
+
+  const stopServer = useCallback(async () => {
+    try {
+      await rpcCall("stopServer");
+    } catch (error) {
+      console.error("Failed to stop server:", error);
+    }
+
+    // reset the status
+    setStreamingServerStatus({
+      running: false,
+      port: 8080,
+      ip: "localhost",
+    });
+  }, []);
+
+  const getServerStatus = useCallback(async () => {
+    return await rpcCall("getServerStatus");
+  }, []);
+
+  // System stats
   const [systemStats, setSystemStats] = useState<SystemStatsResponse>({
     cpu: 0,
     memory: 0,
@@ -58,6 +93,7 @@ export function useRPC() {
     cpuCores: 0,
     cpuModel: "",
   });
+
   const [videoStats, setVideoStats] = useState<VideoStatsResponse>({
     total: 0,
     movies: 0,
@@ -65,11 +101,13 @@ export function useRPC() {
     totalSize: 0,
     favorites: 0,
   });
+
+  // Loading state
   const [loading, setLoading] = useState(true);
 
+  // Load all data
   const loadAll = useCallback(async () => {
     try {
-      console.log("Load all called");
       const [foldersData] = await Promise.all([rpcCall("getFolders")]);
 
       setFolders(foldersData);
@@ -156,26 +194,6 @@ export function useRPC() {
     setScanProgress(null);
   }, []);
 
-  const startServer = useCallback(async (port?: number) => {
-    const result = await rpcCall("startServer", { port: port || 8080 });
-    if (result.success) {
-      setServerStatus((prev) => ({
-        ...prev,
-        running: true,
-        port: result.port || port || 8080,
-      }));
-    }
-    return result;
-  }, []);
-
-  const stopServer = useCallback(async () => {
-    const result = await rpcCall("stopServer");
-    if (result.success) {
-      setServerStatus((prev) => ({ ...prev, running: false }));
-    }
-    return result;
-  }, []);
-
   const toggleFavorite = useCallback(
     async (id: number, isFavorite: boolean) => {
       await rpcCall("updateVideo", { id, isFavorite: !isFavorite });
@@ -197,7 +215,6 @@ export function useRPC() {
     videoStats,
     isScanning,
     scanProgress,
-    serverStatus,
     activityLogs,
     systemStats,
     loading,
@@ -208,8 +225,10 @@ export function useRPC() {
     cancelScan,
     startServer,
     stopServer,
+    streamingServerStatus,
+    getServerStatus,
     toggleFavorite,
     clearLogs,
-    refresh: loadAll,
+    refreshAll: loadAll,
   };
 }

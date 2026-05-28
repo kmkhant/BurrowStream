@@ -83,6 +83,29 @@ export type MainRPC = {
         params: Record<string, never>;
         response: { success: boolean };
       };
+
+      // streaming handlers
+      startServer: {
+        params: { port?: number };
+        response: {
+          success: boolean;
+          error?: string;
+          port?: number;
+          ip?: string;
+        };
+      };
+      stopServer: {
+        params: Record<string, never>;
+        response: { success: boolean; error?: string };
+      };
+      getServerStatus: {
+        params: Record<string, never>;
+        response: {
+          running: boolean;
+          port: number | null;
+          uptime: number;
+        };
+      };
     };
     messages: {
       log: { msg: string };

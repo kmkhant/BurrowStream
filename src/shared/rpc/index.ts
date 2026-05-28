@@ -20,6 +20,11 @@ export const mainWindowRpc = BrowserView.defineRPC<MainRPC>({
       // scanner handlers
       startScan: rpcHandlers.startScan,
       cancelScan: rpcHandlers.cancelScan,
+
+      // streaming handlers
+      startServer: rpcHandlers.startServer,
+      stopServer: rpcHandlers.stopServer,
+      getServerStatus: rpcHandlers.getServerStatus,
     },
     messages: {
       log: ({ msg }) => {
