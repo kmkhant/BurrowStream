@@ -11,9 +11,13 @@ export default {
     copy: {
       "dist/index.html": "views/mainview/index.html",
       "dist/assets": "views/mainview/assets",
+
+      // Player build
+      "dist-player/index.html": "views/player-dist/index.html",
+      "dist-player/assets": "views/player-dist/assets",
     },
     // Ignore Vite output in watch mode — HMR handles view rebuilds separately
-    watchIgnore: ["dist/**"],
+    watchIgnore: ["dist/**", "dist-player/**"],
     mac: {
       bundleCEF: false,
     },

@@ -1,5 +1,9 @@
 .
 ├── README.md
+├── artifacts
+│   ├── canary-macos-arm64-burrow-stream-canary.app.tar.zst
+│   ├── canary-macos-arm64-burrow-stream-canary.dmg
+│   └── canary-macos-arm64-update.json
 ├── build
 │   └── dev-macos-arm64
 │       └── burrow-stream-dev.app
@@ -20,8 +24,8 @@
 │                   │   └── views
 │                   │       └── mainview
 │                   │           ├── assets
-│                   │           │   ├── index-DVLm_Xcs.css
-│                   │           │   └── index-E6qKQjru.js
+│                   │           │   ├── index-CkUQPpMz.js
+│                   │           │   └── index-D2PHnApu.css
 │                   │           └── index.html
 │                   ├── build.json
 │                   ├── main.js
@@ -34,6 +38,11 @@
 ├── docs
 │   ├── parse_and_scanner.md
 │   └── snippets.md
+├── drizzle
+│   ├── 0000_early_maximus.sql
+│   └── meta
+│       ├── 0000_snapshot.json
+│       └── _journal.json
 ├── drizzle.config.ts
 ├── electrobun.config.ts
 ├── llms.txt
@@ -48,16 +57,32 @@
 │   │   │   ├── client.ts
 │   │   │   └── schema.ts
 │   │   ├── index.ts
+│   │   ├── logger
+│   │   │   └── index.ts
 │   │   ├── media
 │   │   │   ├── parser.ts
 │   │   │   ├── scanner.ts
 │   │   │   └── watcher.ts
 │   │   ├── rpc
+│   │   │   ├── handlers
+│   │   │   │   ├── folder
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── scanner
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── streaming
+│   │   │   │   │   └── index.ts
+│   │   │   │   └── system
+│   │   │   │       └── index.ts
 │   │   │   ├── handlers.ts
 │   │   │   └── router.ts
-│   │   └── utils
-│   │       ├── cpu.ts
-│   │       └── paths.ts
+│   │   ├── streaming
+│   │   │   ├── server.ts
+│   │   │   └── utils.ts
+│   │   ├── utils
+│   │   │   ├── cpu.ts
+│   │   │   └── paths.ts
+│   │   └── windows
+│   │       └── index.ts
 │   ├── mainview
 │   │   ├── App.tsx
 │   │   ├── hooks
@@ -65,10 +90,24 @@
 │   │   │   └── useTheme.ts
 │   │   ├── index.css
 │   │   ├── index.html
+│   │   ├── lib
+│   │   │   ├── electrobun.ts
+│   │   │   └── utils.ts
+│   │   └── main.tsx
+│   ├── player
+│   │   ├── App.tsx
+│   │   ├── dist-player
+│   │   │   ├── assets
+│   │   │   │   ├── index-B--o_RDE.js
+│   │   │   │   └── index-Bpjhe-hK.css
+│   │   │   └── index.html
+│   │   ├── index.css
+│   │   ├── index.html
 │   │   └── main.tsx
 │   └── shared
 │       ├── rpc
 │       │   ├── definitions.ts
+│       │   ├── index.ts
 │       │   ├── schema.ts
 │       │   └── types.ts
 │       └── types
@@ -80,6 +119,7 @@
 │       ├── parser.test.ts
 │       └── scanner.test.ts
 ├── tsconfig.json
-└── vite.config.ts
+├── vite.config.ts
+└── vite.player.config.ts
 
-30 directories, 53 files
+45 directories, 78 files

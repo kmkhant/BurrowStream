@@ -19,3 +19,6 @@ data/*
 
 # Environment variables
 .env
+
+# Dist directories
+dist*
