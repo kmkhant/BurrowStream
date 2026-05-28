@@ -1,16 +1,14 @@
 // src/views/admin/components/AdminPanel.tsx
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   CirclePlay,
   CircleStop,
   FolderOpen,
   Film,
-  Tv,
   Scan,
   Trash2,
   HardDrive,
   Clock,
-  Heart,
   Plus,
   Moon,
   Sun,
@@ -28,24 +26,19 @@ export default function App() {
 
   // RPC State
   const {
-    ping,
     folders,
-    videos,
     videoStats,
     isScanning,
     scanProgress,
     serverStatus,
     activityLogs,
     systemStats,
-    loading,
-    getFolders,
     addFolder,
     removeFolder,
     startScan,
     cancelScan,
     startServer,
     stopServer,
-    clearLogs,
   } = useRPC();
 
   // Stats
@@ -119,6 +112,35 @@ export default function App() {
             </span>
           </div>
 
+          {/* Server Status */}
+          <div className="flex items-center gap-2 text-xs">
+            <div
+              className={cn(
+                isDark ? "text-zinc-400" : "text-zinc-600",
+                "text-xs",
+              )}
+            >
+              CPU: {systemStats.cpu.toFixed(2)}%
+            </div>
+            <div
+              className={cn(
+                isDark ? "text-zinc-400" : "text-zinc-600",
+                "text-xs",
+              )}
+            >
+              Memory: {systemStats.memory}MB
+            </div>
+            <div
+              className={cn(
+                isDark ? "text-zinc-400" : "text-zinc-600",
+                "text-xs",
+              )}
+            >
+              Uptime: {Math.floor(systemStats.uptime / 3600)}h{" "}
+              {Math.floor((systemStats.uptime % 3600) / 60)}m
+            </div>
+          </div>
+
           <div className="flex items-center gap-2">
             {/* Theme Toggle */}
             <button
@@ -132,11 +154,6 @@ export default function App() {
                 <Sun className="size-3.5 text-[var(--text-secondary)]" />
               )}
             </button>
-
-            {/* Server Status */}
-            <div className="flex items-center gap-2 pr-3 mr-3 border-r border-[var(--border-subtle)]">
-              {/* ... existing server status ... */}
-            </div>
 
             <button className="text-[11px] px-3 py-1.5 rounded-md bg-[var(--bg-elevated)] hover:bg-[var(--bg-hover)] border border-[var(--border-subtle)] transition-colors text-[var(--text-tertiary)]">
               Docs
@@ -266,7 +283,7 @@ export default function App() {
               </div>
               <button
                 onClick={isScanning ? cancelScan : startScan}
-                disabled={folders.length === 0 && !isScanning}
+                // disabled={folders.length === 0 && !isScanning}
                 className={`flex items-center gap-2 text-[11px] font-medium px-3 py-1.5 rounded-md transition-colors ${
                   isScanning
                     ? "bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/10"
@@ -338,18 +355,21 @@ export default function App() {
         </div>
 
         {/* Watched Folders */}
-        {folders.length > 0 && (
+        {
           <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-white/[0.04]">
               <div>
-                <h3
-                  className={cn(
-                    isDark ? "text-zinc-400" : "text-zinc-600",
-                    "text-xs font-medium",
-                  )}
-                >
-                  Watched Folders
-                </h3>
+                <div className="flex items-center gap-2">
+                  <FolderOpen className="size-3.5 text-zinc-500 shrink-0" />
+                  <h3
+                    className={cn(
+                      isDark ? "text-zinc-400" : "text-zinc-600",
+                      "text-xs font-medium",
+                    )}
+                  >
+                    Watched Folders
+                  </h3>
+                </div>
                 <p
                   className={cn(
                     isDark ? "text-zinc-400" : "text-zinc-600",
@@ -410,7 +430,7 @@ export default function App() {
               ))}
             </div>
           </div>
-        )}
+        }
 
         {/* Activity Log */}
         <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg overflow-hidden">

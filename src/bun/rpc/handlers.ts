@@ -6,6 +6,9 @@ import { getSystemStats } from "./handlers/system";
 // Folder handlers
 import { getFolders, addFolder, removeFolder } from "./handlers/folder";
 
+// Scanner handlers
+import { cancelScan, startScan } from "./handlers/scanner";
+
 import type {
   RemoveFolderRequest,
   GetVideosRequest,
@@ -26,11 +29,13 @@ const parser = new MediaParser();
 let streamingServer: any = null;
 let serverStartTime: number | null = null;
 
+// test functions
 async function ping() {
   return "pong";
 }
 
 export const rpcHandlers = {
+  // test handlers
   ping,
 
   // system handlers
@@ -40,6 +45,10 @@ export const rpcHandlers = {
   getFolders,
   addFolder,
   removeFolder,
+
+  // folder scanners
+  startScan,
+  cancelScan,
 };
 
 export function registerHandlers(router: any) {

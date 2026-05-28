@@ -63,3 +63,28 @@ export interface SystemStats {
   memory: number;
   uptime: number;
 }
+
+// ----- Scan Progress Payload -----
+export type ScanProgressPayload = {
+  phase: string;
+  folderId?: number;
+  folderName?: string;
+  processed?: number;
+  total?: number;
+  currentFile?: string;
+  newVideos?: number;
+  updatedVideos?: number;
+  error?: string;
+};
+
+// Typed send function
+export type TypedSend = {
+  send: <T extends "scanProgress" | "log">(
+    message: T,
+    payload: T extends "scanProgress"
+      ? ScanProgressPayload
+      : T extends "log"
+        ? { msg: string }
+        : never,
+  ) => void;
+};

@@ -1,7 +1,7 @@
 // src/shared/rpc/schema.ts
 import { RPCSchema } from "electrobun";
 import { z } from "zod";
-import { Folder } from "./types";
+import { Folder, SystemStats } from "./types";
 
 // ── Folder Schemas ──
 export const AddFolderSchema = z.object({});
@@ -55,6 +55,12 @@ export type MainRPC = {
         params: Record<string, never>;
         response: string;
       };
+      getSystemStats: {
+        params: Record<string, never>;
+        response: SystemStats;
+      };
+
+      // folder handlers
       getFolders: {
         params: Record<string, never>;
         response: Folder[];
@@ -62,6 +68,20 @@ export type MainRPC = {
       addFolder: {
         params: Record<string, never>;
         response: { success: boolean; folder?: Folder };
+      };
+      removeFolder: {
+        params: { id: number };
+        response: { success: boolean };
+      };
+
+      // scanner handlers
+      startScan: {
+        params: Record<string, never>;
+        response: { success: boolean };
+      };
+      cancelScan: {
+        params: Record<string, never>;
+        response: { success: boolean };
       };
     };
     messages: {

@@ -30,6 +30,11 @@ import type {
 // Maps method names to their request/response types
 
 export interface RPCMethods {
+  // Test
+  testScanMessage: {
+    request: void;
+    response: { success: boolean };
+  };
   // Ping
   ping: {
     request: void;
@@ -126,6 +131,7 @@ export interface RPCMethods {
 // ── Request Schemas Map (for validation) ──
 
 export const RequestSchemas = {
+  testScanMessage: z.object({}),
   getFolders: GetFoldersRequest,
   addFolder: AddFolderRequest,
   removeFolder: RemoveFolderRequest,

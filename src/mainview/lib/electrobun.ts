@@ -1,5 +1,5 @@
 import { Electroview } from "electrobun/view";
-import type { MainRPC } from "../../shared/rpc/types";
+import type { MainRPC } from "../../shared/rpc/schema";
 
 const rpc = Electroview.defineRPC<MainRPC>({
   maxRequestTime: 5000,

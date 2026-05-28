@@ -85,21 +85,20 @@ export function useRPC() {
 
   // Subscribe to scan progress
   useEffect(() => {
-    if (typeof window !== "undefined" && "electrobun" in window) {
-      // @ts-ignore
-      const unsubscribe = electrobun.rpc.on(
-        "scanProgress",
-        (progress: ScanProgressResponse) => {
-          setScanProgress(progress);
-          if (progress.phase === "complete" || progress.phase === "error") {
-            setIsScanning(false);
-            loadAll();
-          }
-        },
-      );
-      return unsubscribe;
-    }
-  }, [loadAll]);
+    // @ts-ignore
+    const unsubscribe = electrobun.rpc?.addMessageListener(
+      "scanProgress",
+      (progress: ScanProgressResponse) => {
+        console.log("Scan progress:", progress);
+        setScanProgress(progress);
+        if (progress.phase === "complete" || progress.phase === "error") {
+          setIsScanning(false);
+          loadAll();
+        }
+      },
+    );
+    return unsubscribe;
+  }, []);
 
   // Poll system stats
   useEffect(() => {
@@ -129,13 +128,21 @@ export function useRPC() {
 
   const addFolder = useCallback(async () => {
     const result = await rpcCall("addFolder");
+    // Reload folders
+    await loadAll();
     return result;
-  }, []);
+  }, [loadAll]);
 
-  const removeFolder = useCallback(async (id: number) => {
-    const result = await rpcCall("removeFolder", { id });
-    return result;
-  }, []);
+  const removeFolder = useCallback(
+    async (id: number) => {
+      const result = await rpcCall("removeFolder", { id });
+
+      // Reload folders
+      await loadAll();
+      return result;
+    },
+    [loadAll],
+  );
 
   const startScan = useCallback(async () => {
     setIsScanning(true);

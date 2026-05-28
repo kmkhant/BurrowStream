@@ -117,8 +117,10 @@ export class CPUMonitor {
       return;
     }
 
-    const cpuUsage = 100 - Math.round((totalIdle / totalTick) * 100);
-    this.currentUsage.cpu = Math.max(0, Math.min(100, cpuUsage));
+    const percentage = (totalIdle / totalTick) * 100;
+    const cpuUsage = 100 - percentage;
+
+    this.currentUsage.cpu = cpuUsage;
   }
 
   /**

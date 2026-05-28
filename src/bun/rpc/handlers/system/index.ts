@@ -1,5 +1,8 @@
 import { cpuMonitor } from "../../../utils/cpu";
 
+// Start CPU monitoring
+cpuMonitor.start(2000);
+
 export async function getSystemStats() {
   const usage = cpuMonitor.getUsage();
   const mem = process.memoryUsage();
