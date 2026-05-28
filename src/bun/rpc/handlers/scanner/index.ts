@@ -51,24 +51,26 @@ export async function startScan(
       .get();
 
     // Notify UI that we're starting this folder
-    // context.send("scanProgress", {
-    //   folderId: folder.id,
-    //   folderName: folder.name,
-    //   phase: "starting",
-    //   processed: 0,
-    //   total: 0,
-    // });
+    // @ts-ignore
+    mainWindowRpc.send.scanProgress({
+      folderId: folder.id,
+      folderName: folder.name,
+      phase: "starting",
+      processed: 0,
+      total: 0,
+    });
 
     // Forward scanner progress events to the frontend
     const onProgress = (p: any) => {
-      // context.send("scanProgress", {
-      //   folderId: folder.id,
-      //   folderName: folder.name,
-      //   processed: p.processed,
-      //   total: p.total,
-      //   currentFile: p.currentFile,
-      //   phase: p.phase,
-      // });
+      // @ts-ignore
+      mainWindowRpc.send.scanProgress({
+        folderId: folder.id,
+        folderName: folder.name,
+        processed: p.processed,
+        total: p.total,
+        currentFile: p.currentFile,
+        phase: p.phase,
+      });
     };
     scanner.on("progress", onProgress);
 
@@ -164,15 +166,16 @@ export async function startScan(
         .run();
 
       // Final progress for this folder
-      // context.send("scanProgress", {
-      //   folderId: folder.id,
-      //   folderName: folder.name,
-      //   phase: "complete",
-      //   processed: result.videos.length,
-      //   total: result.videos.length,
-      //   newVideos,
-      //   updatedVideos,
-      // });
+      // @ts-ignore
+      mainWindowRpc.send.scanProgress({
+        folderId: folder.id,
+        folderName: folder.name,
+        phase: "complete",
+        processed: result.videos.length,
+        total: result.videos.length,
+        newVideos,
+        updatedVideos,
+      });
 
       // Log activity
       db.insert(activityLog)
@@ -196,12 +199,15 @@ export async function startScan(
         .where(eq(scanHistory.id, scanEntry.id))
         .run();
 
-      // context.send("scanProgress", {
-      //   folderId: folder.id,
-      //   folderName: folder.name,
-      //   phase: "error",
-      //   error: error.message,
-      // });
+      // @ts-ignore
+      mainWindowRpc.send.scanProgress({
+        folderId: folder.id,
+        folderName: folder.name,
+        phase: "error",
+        error: error.message,
+        processed: 0,
+        total: 0,
+      });
 
       db.insert(activityLog)
         .values({
@@ -215,7 +221,10 @@ export async function startScan(
   }
 
   // Inform UI that all folders have been processed
-  // context.send("scanProgress", { phase: "allComplete" });
+  // @ts-ignore
+  mainWindowRpc.send.scanProgress({
+    phase: "allComplete",
+  });
   return { success: true };
 }
 

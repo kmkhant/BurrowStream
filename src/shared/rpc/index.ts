@@ -3,7 +3,7 @@ import { rpcHandlers } from "../../bun/rpc/handlers";
 import { MainRPC } from "./schema";
 
 export const mainWindowRpc = BrowserView.defineRPC<MainRPC>({
-  maxRequestTime: 5000,
+  maxRequestTime: 30000,
   handlers: {
     requests: {
       // Test handlers

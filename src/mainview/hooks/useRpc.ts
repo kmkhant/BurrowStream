@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { electrobun } from "../lib/electrobun";
 
 import type {
@@ -69,6 +69,7 @@ export function useRPC() {
 
   const loadAll = useCallback(async () => {
     try {
+      console.log("Load all called");
       const [foldersData] = await Promise.all([rpcCall("getFolders")]);
 
       setFolders(foldersData);
@@ -77,23 +78,22 @@ export function useRPC() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [folders.length]);
 
+  const loadAllRef = useRef(loadAll);
   useEffect(() => {
-    loadAll();
+    loadAllRef.current = loadAll;
   }, [loadAll]);
 
   // Subscribe to scan progress
   useEffect(() => {
-    // @ts-ignore
     const unsubscribe = electrobun.rpc?.addMessageListener(
       "scanProgress",
       (progress: ScanProgressResponse) => {
-        console.log("Scan progress:", progress);
         setScanProgress(progress);
         if (progress.phase === "complete" || progress.phase === "error") {
           setIsScanning(false);
-          loadAll();
+          loadAllRef.current(); // always calls the latest loadAll
         }
       },
     );
@@ -131,7 +131,7 @@ export function useRPC() {
     // Reload folders
     await loadAll();
     return result;
-  }, [loadAll]);
+  }, [folders.length]);
 
   const removeFolder = useCallback(
     async (id: number) => {

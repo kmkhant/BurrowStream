@@ -81,18 +81,19 @@ export default function App() {
     return `${days}d ago`;
   };
 
+  const [isAdding, setIsAdding] = useState(false);
+
   // Folder Select Handlers
   const handleAddFolder = async () => {
-    const result = await addFolder();
-
-    console.log(result);
-
-    // if (path) {
-    //   const result = await addFolder(path);
-    //   if (!result.success) {
-    //     console.error(result.error);
-    //   }
-    // }
+    setIsAdding(true);
+    try {
+      const result = await addFolder();
+      console.log(result);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   return (
@@ -382,6 +383,7 @@ export default function App() {
               </div>
               <button
                 onClick={handleAddFolder}
+                disabled={isAdding}
                 className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] transition-colors"
               >
                 <Plus className="size-3" />

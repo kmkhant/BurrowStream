@@ -34,6 +34,9 @@ import {
   scanHistory,
 } from "../../../db/schema";
 
+// logger
+import logger from "../../../logger";
+
 export async function getFolders() {
   return db
     .select()
@@ -61,6 +64,7 @@ export async function addFolder() {
   });
 
   if (!chosenPaths || chosenPaths.length === 0) {
+    logger.error("No folder selected");
     return { success: false, error: "No folder selected" };
   }
 
@@ -74,11 +78,13 @@ export async function addFolder() {
     .get();
 
   if (existing) {
+    logger.error("Folder already being watched");
     return { success: false, error: "Folder already being watched" };
   }
 
   // prevent adding empty chosen path
   if (folderPath.trim() === "") {
+    logger.error("Invalid folder path");
     return { success: false, error: "Invalid folder path" };
   }
 
@@ -104,6 +110,7 @@ export async function addFolder() {
     })
     .run();
 
+  logger.info(`Added folder: ${folder.name}`);
   return { success: true, data: { folderId: folder.id } };
 }
 
