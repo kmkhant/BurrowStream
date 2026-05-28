@@ -9,4 +9,10 @@ export default defineConfig({
     outDir: path.resolve(__dirname, "dist-player"),
     emptyOutDir: true,
   },
+  resolve: {
+    dedupe: ["react", "react-dom"],
+  },
+  optimizeDeps: {
+    include: ["react", "react-dom"],
+  },
 });

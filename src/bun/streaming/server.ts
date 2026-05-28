@@ -5,6 +5,18 @@ import { videos } from "../db/schema";
 import { eq, sql } from "drizzle-orm";
 import { existsSync } from "node:fs";
 
+async function isViteRunning(url: string): Promise<boolean> {
+  try {
+    await fetch(url, { method: "HEAD" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const PLAYER_DEV_PORT = parseInt(process.env.PLAYER_DEV_PORT || "5174");
+const playerDevUrl = `http://localhost:${PLAYER_DEV_PORT}`;
+
 function getPlayerDir(): string {
   // 1. Development: project root + src/player/dist-player
   const devPath = join(process.cwd(), "src", "player", "dist-player");
@@ -20,6 +32,15 @@ function getPlayerDir(): string {
 const playerDir = getPlayerDir();
 
 export function createServer(port: number = 8080) {
+  // Resolve dev mode on startup
+  let useDevServer = false;
+  (async () => {
+    useDevServer = await isViteRunning(playerDevUrl);
+    if (useDevServer) {
+      console.log(`📡 Proxying player requests to Vite at ${playerDevUrl}`);
+    }
+  })();
+
   const server = Bun.serve({
     port,
     async fetch(req) {
@@ -85,6 +106,26 @@ export function createServer(port: number = 8080) {
       // Serve the React player build
       const filePath = url.pathname === "/" ? "/index.html" : url.pathname;
       const fullPath = join(playerDir, filePath);
+
+      if (useDevServer) {
+        // Proxy to Vite dev server
+        try {
+          const proxyUrl = new URL(filePath + url.search, playerDevUrl);
+          const response = await fetch(proxyUrl, {
+            method: req.method,
+            headers: req.headers,
+          });
+          const proxyHeaders = new Headers(response.headers);
+          proxyHeaders.set("Access-Control-Allow-Origin", "*");
+          return new Response(response.body, {
+            status: response.status,
+            headers: proxyHeaders,
+          });
+        } catch {
+          // Fallback to static if proxy fails
+          console.warn("Proxy failed, serving static file");
+        }
+      }
 
       try {
         const file = Bun.file(fullPath);

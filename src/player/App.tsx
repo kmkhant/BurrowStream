@@ -11,6 +11,8 @@ interface Video {
   extension: string;
 }
 
+const API_BASE = import.meta.env.DEV ? "http://localhost:8080" : "";
+
 export default function App() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [filter, setFilter] = useState("");
@@ -18,7 +20,7 @@ export default function App() {
 
   const fetchVideos = async (type = "") => {
     const params = type ? `?type=${type}` : "";
-    const res = await fetch(`/api/videos${params}`);
+    const res = await fetch(`${API_BASE}/api/videos${params}`);
     const data = await res.json();
     setVideos(data);
   };
@@ -38,7 +40,7 @@ export default function App() {
       <header className="sticky top-0 z-50 border-b border-[var(--border-subtle)] bg-[var(--bg)]/80 backdrop-blur-xl">
         <div className="flex items-center h-12 px-4">
           <h1 className="text-sm font-medium text-[var(--text-secondary)]">
-            📺 BurrowStream
+            📺 BurrowStreamX
           </h1>
         </div>
       </header>
@@ -48,7 +50,7 @@ export default function App() {
         {currentVideo && (
           <div className="bg-black rounded-xl overflow-hidden border border-[var(--border-subtle)]">
             <video
-              src={`/stream/${currentVideo.id}`}
+              src={`${API_BASE}/stream/${currentVideo.id}`}
               controls
               autoPlay
               className="w-full max-h-[50vh]"
