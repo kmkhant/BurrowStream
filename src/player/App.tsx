@@ -1,3 +1,4 @@
+import { Film, Tv } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface Video {
@@ -9,6 +10,8 @@ interface Video {
   episode?: string;
   size: number;
   extension: string;
+  year?: number;
+  episodeTitle?: string;
 }
 
 const API_BASE = import.meta.env.DEV ? "http://localhost:8080" : "";
@@ -37,10 +40,16 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)] font-sans antialiased">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-[var(--border-subtle)] bg-[var(--bg)]/80 backdrop-blur-xl">
-        <div className="flex items-center h-12 px-4">
-          <h1 className="text-sm font-medium text-[var(--text-secondary)]">
-            📺 BurrowStreamX
+      <header className="sticky top-0 z-50 border-b border-[var(--border-subtle)] bg-[var(--bg)]/80 backdrop-blur-md">
+        <div className="flex items-center justify-center h-14 px-4">
+          <h1
+            className="font-bold tracking-[0.2em] uppercase select-none"
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              color: "#E50914", // Netflix red
+            }}
+          >
+            BurrowStream
           </h1>
         </div>
       </header>
@@ -55,9 +64,10 @@ export default function App() {
               autoPlay
               className="w-full max-h-[50vh]"
             />
-            <div className="p-3 border-t border-[var(--border-subtle)]">
+            <div className="p-2 border-t border-[var(--border-subtle)]">
               <p className="text-xs font-medium text-[var(--text-primary)]">
-                {currentVideo.title}
+                {currentVideo.title}{" "}
+                {currentVideo.year && `(${currentVideo.year})`}
               </p>
               <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5">
                 {currentVideo.quality}
@@ -94,32 +104,67 @@ export default function App() {
         </div>
 
         {/* Video List */}
-        <div className="space-y-1">
+        <div className="grid grid-cols-2 gap-2">
           {videos.map((video) => (
             <button
               key={video.id}
               onClick={() => setCurrentVideo(video)}
-              className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors ${
+              className={`min-w-0 px-2 group aspect-square flex flex-col rounded-lg overflow-hidden border transition-all duration-150 ${
                 currentVideo?.id === video.id
-                  ? "bg-[var(--accent-emerald)]/10 border border-[var(--accent-emerald)]/20"
-                  : "bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:bg-[var(--bg-hover)]"
+                  ? "bg-[var(--accent-emerald)]/10 border-[var(--accent-emerald)]/20 shadow-md"
+                  : "bg-[var(--bg-elevated)] border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] hover:border-[var(--border-medium)] hover:shadow-sm"
               }`}
             >
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-[var(--text-primary)] truncate">
-                  {video.title}
-                </p>
-                <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5">
-                  {video.type === "movie" ? "🎬" : "📺"} {video.quality}
-                  {video.season &&
-                    ` · S${String(video.season).padStart(2, "0")}`}
-                  {video.episode &&
-                    `E${JSON.parse(video.episode)[0].toString().padStart(2, "0")}`}
-                </p>
+              {/* Thumbnail area – takes most of the space */}
+              <div className="flex-1 flex items-center justify-center bg-black/10 relative">
+                {video.type === "movie" ? (
+                  <Film className="w-10 h-10 text-[var(--text-quaternary)]" />
+                ) : (
+                  <Tv className="w-10 h-10 text-[var(--text-quaternary)]" />
+                )}
+
+                {/* Active indicator – subtle corner badge */}
+                {currentVideo?.id === video.id && (
+                  <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[var(--accent-emerald)] shadow-[0_0_8px_var(--accent-emerald)]" />
+                )}
               </div>
-              <span className="text-[10px] text-[var(--text-quaternary)] ml-3 shrink-0">
-                {formatSize(video.size)}
-              </span>
+
+              {/* Title & meta */}
+              <div className="p-2 border-t border-[var(--border-subtle)]">
+                <p className="text-xs font-medium text-[var(--text-primary)] truncate leading-tight">
+                  {video.title} {video.year && `(${video.year})`}
+                </p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  {/* Quality badge */}
+                  {video.quality && (
+                    <span className="text-[10px] font-medium px-1 py-0.5 rounded bg-[var(--bg)] text-[var(--text-tertiary)] border border-[var(--border-subtle)] leading-none">
+                      {video.quality}
+                    </span>
+                  )}
+                  {/* Size */}
+                  <span className="text-[10px] text-[var(--text-quaternary)]">
+                    {formatSize(video.size)}
+                  </span>
+                </div>
+                {/* Season / Episode / Year */}
+                {video.season && (
+                  <div className="flex items-center gap-1 mt-0.5 text-[10px] text-[var(--text-tertiary)] font-mono truncate">
+                    {video.season && video.episode && (
+                      <span>
+                        S{String(video.season).padStart(2, "0")}
+                        {video.episode &&
+                          `E${JSON.parse(video.episode)[0].toString().padStart(2, "0")}`}
+                      </span>
+                    )}
+                    {video.year && <span>{video.year}</span>}
+                    {video.episodeTitle && (
+                      <span className="truncate text-[var(--text-quaternary)]">
+                        {video.episodeTitle}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
             </button>
           ))}
         </div>
