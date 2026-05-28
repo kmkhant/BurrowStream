@@ -8,6 +8,8 @@
     "dev:hmr": "concurrently \"bun run dev:mainview\" \"bun run start\"",
     "dev:player:hmr": "concurrently \"bun run dev:player\" \"bun run start\"",
     "build:player": "vite build --config vite.player.config.ts",
+    "build:mainview": "vite build --config vite.config.ts",
+    "build:views": "vite build --config vite.config.ts && vite build --config vite.player.config.ts",
     "dev:mainview": "vite --config vite.config.ts --port 5173",
     "dev:player": "vite --config vite.player.config.ts --port 5174",
     "build:canary": "vite build && electrobun build --env=canary",
