@@ -1,5 +1,5 @@
 import { BrowserView } from "electrobun";
-import { rpcHandlers } from "../../bun/rpc/handlers";
+import { rpcHandlers } from "../../bun/rpc";
 import { MainRPC } from "./schema";
 
 export const mainWindowRpc = BrowserView.defineRPC<MainRPC>({

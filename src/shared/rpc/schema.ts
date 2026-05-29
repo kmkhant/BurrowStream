@@ -1,115 +1,293 @@
 // src/shared/rpc/schema.ts
 import { RPCSchema } from "electrobun";
 import { z } from "zod";
-import { Folder, SystemStats } from "./types";
 
-// ── Folder Schemas ──
-export const AddFolderSchema = z.object({});
+// ── Shared RPC Definitions Imports ──
+import {
+  AddFolderRequest,
+  GetActivityLogsRequest,
+  GetScanHistoryRequest,
+  GetVideoRequest,
+  GetVideosRequest,
+  RemoveFolderRequest,
+  StartServerRequest,
+  ToggleFolderActiveRequest,
+  UpdateVideoRequest,
+} from "../../shared/rpc/definitions";
 
-export const RemoveFolderSchema = z.object({
-  id: z.number(),
-});
+import type {
+  ActivityLogResponse,
+  FolderResponseSchema,
+  PaginatedResponse,
+  ScanHistoryResponse,
+  ScanProgressResponse,
+  ServerStatusResponse,
+  StartStreamingServerResponse,
+  SuccessResponse,
+  SystemStatsResponse,
+  VideoResponse,
+  VideoStatsResponse,
+} from "../../shared/rpc/definitions";
 
-// ── Scan Schemas ──
-export const StartScanSchema = z.object({});
+// ── 1. Zod Validation Schemas (Runtime) ──
+
+// System / Ping Schemas
+export const TestScanMessageSchema = z.object({});
+
+// Folder Schemas
+export const AddFolderSchema = AddFolderRequest;
+export const GetFoldersSchema = z.object({});
+export const RemoveFolderSchema = RemoveFolderRequest;
+export const ToggleFolderActiveSchema = ToggleFolderActiveRequest;
+
+// Video Schemas
+export const GetVideoSchema = GetVideoRequest;
+export const GetVideosSchema = GetVideosRequest;
+export const GetVideoStatsSchema = z.object({});
+export const UpdateVideoSchema = UpdateVideoRequest;
+
+// Scan Schemas
 export const CancelScanSchema = z.object({});
+export const GetScanHistorySchema = GetScanHistoryRequest;
+export const StartScanSchema = z.object({});
 
-// ── Video Schemas ──
-export const GetVideosSchema = z.object({
-  type: z.enum(["movie", "tv", "unknown", "all"]).optional(),
-  folderId: z.number().optional(),
-  limit: z.number().optional(),
-  offset: z.number().optional(),
-  search: z.string().optional(),
-});
-
-export const GetVideoSchema = z.object({
-  id: z.number(),
-});
-
-export const UpdateVideoSchema = z.object({
-  id: z.number(),
-  customTitle: z.string().optional(),
-  isFavorite: z.boolean().optional(),
-});
-
-// ── Server Schemas ──
-export const StartServerSchema = z.object({
-  port: z.number().optional(),
-});
-
+// Server Schemas
+export const GetServerStatusSchema = z.object({});
+export const StartServerSchema = StartServerRequest;
 export const StopServerSchema = z.object({});
 
-// ── Activity Log Schemas ──
-export const GetActivityLogsSchema = z.object({
-  limit: z.number().optional(),
-  level: z.enum(["info", "warn", "error"]).optional(),
-});
-
+// Activity Log Schemas
 export const ClearActivityLogsSchema = z.object({});
+export const GetActivityLogsSchema = GetActivityLogsRequest;
+
+// ── 2. Request Schemas Map (Runtime Registry) ──
+
+export const RequestSchemas = {
+  // System / Ping
+  testScanMessage: TestScanMessageSchema,
+
+  // Folder Management
+  addFolder: AddFolderSchema,
+  getFolders: GetFoldersSchema,
+  removeFolder: RemoveFolderSchema,
+  toggleFolderActive: ToggleFolderActiveSchema,
+
+  // Video Management
+  getVideo: GetVideoSchema,
+  getVideos: GetVideosSchema,
+  getVideoStats: GetVideoStatsSchema,
+  updateVideo: UpdateVideoSchema,
+
+  // Scanning
+  cancelScan: CancelScanSchema,
+  getScanHistory: GetScanHistorySchema,
+  startScan: StartScanSchema,
+
+  // Server Management
+  getServerStatus: GetServerStatusSchema,
+  startServer: StartServerSchema,
+  stopServer: StopServerSchema,
+
+  // Activity Logs
+  clearActivityLogs: ClearActivityLogsSchema,
+  getActivityLogs: GetActivityLogsSchema,
+} as const;
+
+// ── 3. Pure Static Types (Compile-time) ──
+
+export interface RPCMethods {
+  // System / Ping
+  ping: {
+    request: void;
+    response: string;
+  };
+  testScanMessage: {
+    request: void;
+    response: { success: boolean };
+  };
+  getSystemStats: {
+    request: void;
+    response: SystemStatsResponse;
+  };
+
+  // Folder Management
+  addFolder: {
+    request: z.infer<typeof AddFolderSchema>;
+    response: SuccessResponse & {
+      folder?: z.infer<typeof FolderResponseSchema>;
+    };
+  };
+  getFolders: {
+    request: void;
+    response: z.infer<typeof FolderResponseSchema>[];
+  };
+  removeFolder: {
+    request: z.infer<typeof RemoveFolderSchema>;
+    response: SuccessResponse;
+  };
+  toggleFolderActive: {
+    request: z.infer<typeof ToggleFolderActiveSchema>;
+  };
+
+  // Video Management
+  getVideo: {
+    request: z.infer<typeof GetVideoSchema>;
+    response: VideoResponse | undefined;
+  };
+  getVideos: {
+    request: z.infer<typeof GetVideosSchema>;
+    response: PaginatedResponse<VideoResponse>;
+  };
+  getVideoStats: {
+    request: void;
+    response: VideoStatsResponse;
+  };
+  updateVideo: {
+    request: z.infer<typeof UpdateVideoSchema>;
+    response: SuccessResponse;
+  };
+
+  // Scanning
+  cancelScan: {
+    request: void;
+    response: SuccessResponse;
+  };
+  getScanHistory: {
+    request: z.infer<typeof GetScanHistorySchema>;
+    response: ScanHistoryResponse[];
+  };
+  startScan: {
+    request: void;
+    response: SuccessResponse;
+  };
+
+  // Server Management
+  getServerStatus: {
+    request: void;
+    response: ServerStatusResponse;
+  };
+  startServer: {
+    request: z.infer<typeof StartServerSchema>;
+    response: StartStreamingServerResponse;
+  };
+  stopServer: {
+    request: void;
+    response: SuccessResponse;
+  };
+
+  // Activity Logs
+  clearActivityLogs: {
+    request: void;
+    response: SuccessResponse;
+  };
+  getActivityLogs: {
+    request: z.infer<typeof GetActivityLogsSchema>;
+    response: ActivityLogResponse[];
+  };
+
+  // Events (Unidirectional Server → Client Channels)
+  scanProgress: {
+    request: ScanProgressResponse;
+    response: void;
+  };
+}
+
+export type RPCMethodName = keyof RPCMethods;
+
+// ── 4. Electrobun Bridge Map (Compile-time) ──
 
 export type MainRPC = {
   bun: RPCSchema<{
     requests: {
+      // System / Ping
       ping: {
         params: Record<string, never>;
         response: string;
       };
       getSystemStats: {
         params: Record<string, never>;
-        response: SystemStats;
+        response: SystemStatsResponse;
       };
 
-      // folder handlers
+      // Folder Management
+      addFolder: {
+        params: z.infer<typeof AddFolderSchema>;
+        response: SuccessResponse & {
+          folder?: z.infer<typeof FolderResponseSchema>;
+        };
+      };
       getFolders: {
         params: Record<string, never>;
-        response: Folder[];
-      };
-      addFolder: {
-        params: Record<string, never>;
-        response: { success: boolean; folder?: Folder };
+        response: z.infer<typeof FolderResponseSchema>[];
       };
       removeFolder: {
-        params: { id: number };
-        response: { success: boolean };
+        params: z.infer<typeof RemoveFolderSchema>;
+        response: SuccessResponse;
+      };
+      toggleFolderActive: {
+        params: z.infer<typeof ToggleFolderActiveSchema>;
+        response: SuccessResponse & { isActive?: boolean };
       };
 
-      // scanner handlers
-      startScan: {
-        params: Record<string, never>;
-        response: { success: boolean };
+      // Video Management
+      getVideo: {
+        params: z.infer<typeof GetVideoSchema>;
+        response: VideoResponse | undefined;
       };
+      getVideos: {
+        params: z.infer<typeof GetVideosSchema>;
+        response: PaginatedResponse<VideoResponse>;
+      };
+      getVideoStats: {
+        params: Record<string, never>;
+        response: VideoStatsResponse;
+      };
+      updateVideo: {
+        params: z.infer<typeof UpdateVideoSchema>;
+        response: SuccessResponse;
+      };
+
+      // Scanning
       cancelScan: {
         params: Record<string, never>;
-        response: { success: boolean };
+        response: SuccessResponse;
+      };
+      getScanHistory: {
+        params: z.infer<typeof GetScanHistorySchema>;
+        response: ScanHistoryResponse[];
+      };
+      startScan: {
+        params: Record<string, never>;
+        response: SuccessResponse;
       };
 
-      // streaming handlers
+      // Server Management
+      getServerStatus: {
+        params: Record<string, never>;
+        response: ServerStatusResponse;
+      };
       startServer: {
-        params: { port?: number };
-        response: {
-          success: boolean;
-          error?: string;
-          port?: number;
-          ip?: string;
-        };
+        params: z.infer<typeof StartServerSchema>;
+        response: StartStreamingServerResponse;
       };
       stopServer: {
         params: Record<string, never>;
-        response: { success: boolean; error?: string };
+        response: SuccessResponse;
       };
-      getServerStatus: {
+
+      // Activity Logs
+      clearActivityLogs: {
         params: Record<string, never>;
-        response: {
-          running: boolean;
-          port: number | null;
-          uptime: number;
-        };
+        response: SuccessResponse;
+      };
+      getActivityLogs: {
+        params: z.infer<typeof GetActivityLogsSchema>;
+        response: ActivityLogResponse[];
       };
     };
     messages: {
       log: { msg: string };
-      scanProgress: { phase: string; processed: number; total: number };
+      scanProgress: ScanProgressResponse;
     };
   }>;
   webview: RPCSchema<{

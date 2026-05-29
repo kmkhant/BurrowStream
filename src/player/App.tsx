@@ -1,20 +1,16 @@
 import { Film, Tv } from "lucide-react";
 import { useEffect, useState } from "react";
 
-interface Video {
-  id: number;
-  title: string;
-  type: string;
-  quality?: string;
-  season?: number;
-  episode?: string;
-  size: number;
-  extension: string;
-  year?: number;
-  episodeTitle?: string;
-}
+import { API_BASE } from "./constants";
 
-const API_BASE = import.meta.env.DEV ? "http://localhost:8080" : "";
+import { Video } from "./types";
+
+import VideoPlayer from "./components/VideoPlayer";
+
+const formatSize = (bytes: number) => {
+  if (bytes === 0) return "0 MB";
+  return (bytes / 1024 / 1024).toFixed(0) + " MB";
+};
 
 export default function App() {
   const [videos, setVideos] = useState<Video[]>([]);
@@ -32,15 +28,10 @@ export default function App() {
     fetchVideos(filter);
   }, [filter]);
 
-  const formatSize = (bytes: number) => {
-    if (bytes === 0) return "0 MB";
-    return (bytes / 1024 / 1024).toFixed(0) + " MB";
-  };
-
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-primary)] font-sans antialiased">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-[var(--border-subtle)] bg-[var(--bg)]/80 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-[var(--border-subtle)] bg-[var(--bg)]/80">
         <div className="flex items-center justify-center h-14 px-4">
           <h1
             className="font-bold tracking-[0.2em] uppercase select-none"
@@ -56,31 +47,7 @@ export default function App() {
 
       <main className="max-w-3xl mx-auto p-4 space-y-4">
         {/* Video Player */}
-        {currentVideo && (
-          <div className="bg-black rounded-xl overflow-hidden border border-[var(--border-subtle)]">
-            <video
-              src={`${API_BASE}/stream/${currentVideo.id}`}
-              controls
-              autoPlay
-              className="w-full max-h-[50vh]"
-            />
-            <div className="p-2 border-t border-[var(--border-subtle)]">
-              <p className="text-xs font-medium text-[var(--text-primary)]">
-                {currentVideo.title}{" "}
-                {currentVideo.year && `(${currentVideo.year})`}
-              </p>
-              <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5">
-                {currentVideo.quality}
-                {currentVideo.season &&
-                  ` · S${String(currentVideo.season).padStart(2, "0")}`}
-                {currentVideo.episode &&
-                  `E${JSON.parse(currentVideo.episode)[0].toString().padStart(2, "0")}`}
-                {" · "}
-                {formatSize(currentVideo.size)}
-              </p>
-            </div>
-          </div>
-        )}
+        <VideoPlayer currentVideo={currentVideo} />
 
         {/* Filters */}
         <div className="flex gap-2">
@@ -137,7 +104,7 @@ export default function App() {
                 <div className="flex items-center gap-1.5 mt-1">
                   {/* Quality badge */}
                   {video.quality && (
-                    <span className="text-[10px] font-medium px-1 py-0.5 rounded bg-[var(--bg)] text-[var(--text-tertiary)] border border-[var(--border-subtle)] leading-none">
+                    <span className="text-[10px] text-[var(--text-quaternary)]">
                       {video.quality}
                     </span>
                   )}

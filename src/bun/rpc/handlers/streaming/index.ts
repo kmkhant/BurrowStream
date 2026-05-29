@@ -1,15 +1,35 @@
+// src/bun/rpc/handlers/server.ts
+import { z } from "zod";
+import logger from "../../../logger";
 import { createServer } from "../../../streaming/server";
 import { getLocalIP } from "../../../streaming/utils";
 
-import logger from "../../../logger";
+// Import our new unified schemas and types
+import { StartServerRequest } from "../../../../shared/rpc/definitions";
+import type {
+  ServerStatusResponse,
+  StartStreamingServerResponse,
+  SuccessResponse,
+} from "../../../../shared/rpc/definitions";
 
 let streamingServer: ReturnType<typeof createServer> | null = null;
 let serverStartTime: number | null = null;
+let serverIp: string | null = null;
 
-export async function startServer(params: { port?: number }) {
+/**
+ * Starts the background streaming server
+ */
+export async function startServer(
+  params: z.infer<typeof StartServerRequest>,
+): Promise<StartStreamingServerResponse & { error?: string }> {
   if (streamingServer) {
     logger.error("Server already running");
-    return { success: false, error: "Server already running" };
+    return {
+      success: false,
+      error: "Server already running",
+      port: streamingServer.port || 8080,
+      ip: serverIp || "localhost",
+    };
   }
 
   const port = params.port || 8080;
@@ -18,37 +38,57 @@ export async function startServer(params: { port?: number }) {
 
   logger.info(`Server started on port ${port}`);
 
-  // get the local IP
+  // Determine the local IP layout securely
   let ip = "localhost";
   try {
     const ipResult = await getLocalIP();
     ip = ipResult.ip;
   } catch (error) {
+    logger.warn("Could not determine local IP, defaulting to localhost");
     console.error(error);
-    logger.warn("Could not determine local IP, using localhost");
   }
 
-  return { success: true, port: streamingServer.port, ip };
+  serverIp = ip;
+
+  return {
+    success: true,
+    port: streamingServer.port || 8080,
+    ip,
+  };
 }
 
-export async function stopServer() {
+/**
+ * Stops the running streaming server instance
+ */
+export async function stopServer(): Promise<SuccessResponse> {
   if (!streamingServer) {
     return { success: false, error: "Server not running" };
   }
+
   streamingServer.stop(true);
   streamingServer = null;
   serverStartTime = null;
+  serverIp = null;
+
   return { success: true };
 }
 
-export async function getServerStatus(): Promise<{
-  running: boolean;
-  port: number | null;
-  uptime: number;
-}> {
+/**
+ * Retrieves full runtime network diagnostics for the streaming layer
+ */
+export async function getServerStatus(): Promise<ServerStatusResponse> {
+  const isRunning = streamingServer !== null;
+  const currentPort = streamingServer?.port || null;
+  const currentIp = isRunning ? serverIp || "localhost" : null;
+
   return {
-    running: streamingServer !== null,
-    port: streamingServer?.port || null,
+    running: isRunning,
+    port: currentPort,
     uptime: serverStartTime ? Date.now() - serverStartTime : 0,
+    ip: currentIp,
+    url:
+      isRunning && currentPort && currentIp
+        ? `http://${currentIp}:${currentPort}`
+        : null,
   };
 }
