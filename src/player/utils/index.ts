@@ -3,4 +3,8 @@ const formatSize = (bytes: number) => {
   return (bytes / 1024 / 1024).toFixed(0) + " MB";
 };
 
-export { formatSize };
+const cn = (...classes: string[]) => {
+  return classes.filter(Boolean).join(" ");
+};
+
+export { formatSize, cn };
