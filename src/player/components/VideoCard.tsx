@@ -56,9 +56,15 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       {/* Thumbnail Layer / Asset Preview Wrapper */}
       <div className="flex-1 w-full flex items-center justify-center bg-black/10 relative">
         {type === "movie" ? (
-          <Film className="w-10 h-10 text-[var(--text-quaternary)] transition-transform group-hover:scale-105" />
+          <Film
+            className="text-[var(--text-quaternary)] transition-transform group-hover:scale-105"
+            size={64}
+          />
         ) : (
-          <Tv className="w-10 h-10 text-[var(--text-quaternary)] transition-transform group-hover:scale-105" />
+          <Tv
+            className="w-10 h-10 text-[var(--text-quaternary)] transition-transform group-hover:scale-105"
+            size={64}
+          />
         )}
 
         {/* Egress Broadcast Status Indicator */}
@@ -71,15 +77,15 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       </div>
 
       {/* Meta Content Metadata Information Layer */}
-      <div className="w-full p-2 border-t border-[var(--border-subtle)]">
-        <p className="text-xs font-medium text-[var(--text-primary)] truncate leading-tight">
+      <div className="flex justify-center items-center flex-col space-y-3 w-full p-2 border-t border-[var(--border-subtle)]">
+        <p className="text-xs font-semibold text-[var(--text-primary)] truncate leading-tight">
           {title}{" "}
           {year && (
             <span className="text-[var(--text-secondary)]">({year})</span>
           )}
         </p>
 
-        <div className="flex items-center gap-1.5 mt-1 text-[10px] text-[var(--text-quaternary)] font-medium">
+        <div className="flex items-center gap-1.5 mt-2 text-[10px] text-[var(--text-quaternary)] font-medium">
           {quality && (
             <span className="uppercase tracking-wider px-1 bg-black/5 dark:bg-white/5 rounded-sm">
               {quality}

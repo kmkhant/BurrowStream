@@ -1,4 +1,3 @@
-import { Film, Tv } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { API_BASE } from "./constants";
@@ -6,6 +5,7 @@ import { API_BASE } from "./constants";
 import { Video } from "./types";
 
 import VideoPlayer from "./components/VideoPlayer";
+import { VideoCard } from "./components/VideoCard";
 
 const formatSize = (bytes: number) => {
   if (bytes === 0) return "0 MB";
@@ -73,66 +73,13 @@ export default function App() {
         {/* Video List */}
         <div className="grid grid-cols-2 gap-2">
           {videos.map((video) => (
-            <button
+            <VideoCard
               key={video.id}
-              onClick={() => setCurrentVideo(video)}
-              className={`min-w-0 px-2 group aspect-square flex flex-col rounded-lg overflow-hidden border transition-all duration-150 ${
-                currentVideo?.id === video.id
-                  ? "bg-[var(--accent-emerald)]/10 border-[var(--accent-emerald)]/20 shadow-md"
-                  : "bg-[var(--bg-elevated)] border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] hover:border-[var(--border-medium)] hover:shadow-sm"
-              }`}
-            >
-              {/* Thumbnail area – takes most of the space */}
-              <div className="flex-1 flex items-center justify-center bg-black/10 relative">
-                {video.type === "movie" ? (
-                  <Film className="w-10 h-10 text-[var(--text-quaternary)]" />
-                ) : (
-                  <Tv className="w-10 h-10 text-[var(--text-quaternary)]" />
-                )}
-
-                {/* Active indicator – subtle corner badge */}
-                {currentVideo?.id === video.id && (
-                  <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[var(--accent-emerald)] shadow-[0_0_8px_var(--accent-emerald)]" />
-                )}
-              </div>
-
-              {/* Title & meta */}
-              <div className="p-2 border-t border-[var(--border-subtle)]">
-                <p className="text-xs font-medium text-[var(--text-primary)] truncate leading-tight">
-                  {video.title} {video.year && `(${video.year})`}
-                </p>
-                <div className="flex items-center gap-1.5 mt-1">
-                  {/* Quality badge */}
-                  {video.quality && (
-                    <span className="text-[10px] text-[var(--text-quaternary)]">
-                      {video.quality}
-                    </span>
-                  )}
-                  {/* Size */}
-                  <span className="text-[10px] text-[var(--text-quaternary)]">
-                    {formatSize(video.size)}
-                  </span>
-                </div>
-                {/* Season / Episode / Year */}
-                {video.season && (
-                  <div className="flex items-center gap-1 mt-0.5 text-[10px] text-[var(--text-tertiary)] font-mono truncate">
-                    {video.season && video.episode && (
-                      <span>
-                        S{String(video.season).padStart(2, "0")}
-                        {video.episode &&
-                          `E${JSON.parse(video.episode)[0].toString().padStart(2, "0")}`}
-                      </span>
-                    )}
-                    {video.year && <span>{video.year}</span>}
-                    {video.episodeTitle && (
-                      <span className="truncate text-[var(--text-quaternary)]">
-                        {video.episodeTitle}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </button>
+              video={video}
+              formatSize={formatSize}
+              isActive={currentVideo?.id === video.id}
+              onClick={setCurrentVideo}
+            />
           ))}
         </div>
 
