@@ -297,7 +297,7 @@ export default function App() {
                 <FolderOpen className="size-3.5 text-zinc-500 shrink-0" />
                 <h3
                   className={cn(
-                    isDark ? "text-zinc-400" : "text-zinc-600",
+                    isDark ? "text-zinc-200" : "text-zinc-600",
                     "text-xs font-medium",
                   )}
                 >
@@ -317,7 +317,7 @@ export default function App() {
             <button
               onClick={handleAddFolder}
               disabled={isAdding}
-              className="flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] transition-colors"
+              className={`flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04]  transition-colors ${isDark ? "text-zinc-200" : "text-zinc-600"}`}
             >
               <Plus className="size-3" />
               Add Folder

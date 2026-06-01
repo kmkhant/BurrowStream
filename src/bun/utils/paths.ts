@@ -1,18 +1,22 @@
-// src/bun/utils/paths.ts
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { existsSync, mkdirSync } from "node:fs";
 
-const isDev = process.env.NODE_ENV !== "production";
+// Electrobun builds embed code into temporary runtimes or ASAR files.
+// Checking if we are executing within a packaged `.app` bundle is much safer.
+const isPackaged =
+  !process.mainModule?.filename.includes("/src/bun/") &&
+  (process.env.NODE_ENV === "production" || !process.env.DATA_PATH);
+const isDev = !isPackaged;
 
-export function getAppDataDir(appName: string = "BurrowStream"): string {
+// Centralize the fallback to match electrobun.config.ts app.name exactly
+const DEFAULT_APP_NAME = "Burrow Stream";
+
+export function getAppDataDir(appName: string = DEFAULT_APP_NAME): string {
   const platform = process.platform;
 
-  if (isDev) {
-    if (!process.env.DATA_PATH) {
-      throw new Error("DATA_PATH is not set");
-    }
-
+  // Only use local fallback if explicitly debugging locally with the env var present
+  if (isDev && process.env.DATA_PATH) {
     return process.env.DATA_PATH;
   }
 
@@ -21,37 +25,42 @@ export function getAppDataDir(appName: string = "BurrowStream"): string {
       return join(homedir(), "Library", "Application Support", appName);
 
     case "win32":
-      const appData =
-        process.env.APPDATA || join(homedir(), "AppData", "Roaming");
-      return join(appData, appName);
+      return join(
+        process.env.APPDATA || join(homedir(), "AppData", "Roaming"),
+        appName,
+      );
 
     case "linux":
     default:
-      // XDG spec
-      const xdg =
-        process.env.XDG_DATA_HOME || join(homedir(), ".local", "share");
-      return join(xdg, appName);
+      return join(
+        process.env.XDG_DATA_HOME || join(homedir(), ".local", "share"),
+        appName,
+      );
   }
 }
 
-export function getConfigDir(appName: string = "BurrowStream"): string {
+export function getConfigDir(appName: string = DEFAULT_APP_NAME): string {
   const platform = process.platform;
 
   switch (platform) {
     case "darwin":
-      return join(homedir(), "Library", "Preferences", appName);
+      // Storing configuration inside Application Support/AppName/Config
+      // prevents permission blocks on modern macOS versions
+      return join(getAppDataDir(appName), "Config");
 
     case "win32":
-      return getAppDataDir(appName); // Windows stores config in AppData too
+      return getAppDataDir(appName);
 
     case "linux":
     default:
-      const xdg = process.env.XDG_CONFIG_HOME || join(homedir(), ".config");
-      return join(xdg, appName);
+      return join(
+        process.env.XDG_CONFIG_HOME || join(homedir(), ".config"),
+        appName,
+      );
   }
 }
 
-export function getCacheDir(appName: string = "BurrowStream"): string {
+export function getCacheDir(appName: string = DEFAULT_APP_NAME): string {
   const platform = process.platform;
 
   switch (platform) {
@@ -59,22 +68,24 @@ export function getCacheDir(appName: string = "BurrowStream"): string {
       return join(homedir(), "Library", "Caches", appName);
 
     case "win32":
-      const localAppData =
-        process.env.LOCALAPPDATA || join(homedir(), "AppData", "Local");
-      return join(localAppData, appName, "Cache");
+      return join(
+        process.env.LOCALAPPDATA || join(homedir(), "AppData", "Local"),
+        appName,
+        "Cache",
+      );
 
     case "linux":
     default:
-      const xdg = process.env.XDG_CACHE_HOME || join(homedir(), ".cache");
-      return join(xdg, appName);
+      return join(
+        process.env.XDG_CACHE_HOME || join(homedir(), ".cache"),
+        appName,
+      );
   }
 }
 
 export function ensureDir(dir: string): string {
-  // if dev, use local data directory
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
   }
-
   return dir;
 }

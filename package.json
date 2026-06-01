@@ -4,6 +4,7 @@
   "description": "Burrow Stream",
   "scripts": {
     "start": "vite build && electrobun dev",
+    "build": "bun run build:mainview && bun run build:player && electrobun build",
     "dev": "electrobun dev --watch",
     "dev:hmr": "concurrently \"bun run dev:mainview\" \"bun run start\"",
     "dev:player:hmr": "concurrently \"bun run dev:player\" \"bun run start\"",
