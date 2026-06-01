@@ -21,6 +21,7 @@ import { useRPC } from "./hooks/useRpc";
 import { cn, formatBytes } from "./utils";
 
 import StatsGrid from "./components/StatsGrid";
+import { ServerStatus } from "./components/ServerStats";
 
 export default function App() {
   // Theme State
@@ -104,33 +105,7 @@ export default function App() {
           </div>
 
           {/* Server Status */}
-          <div className="flex items-center gap-2 text-xs">
-            <div
-              className={cn(
-                isDark ? "text-zinc-400" : "text-zinc-600",
-                "text-xs",
-              )}
-            >
-              CPU: {systemStats.cpu.toFixed(2)}%
-            </div>
-            <div
-              className={cn(
-                isDark ? "text-zinc-400" : "text-zinc-600",
-                "text-xs",
-              )}
-            >
-              Memory: {systemStats.memory}MB
-            </div>
-            <div
-              className={cn(
-                isDark ? "text-zinc-400" : "text-zinc-600",
-                "text-xs",
-              )}
-            >
-              Uptime: {Math.floor(systemStats.uptime / 3600)}h{" "}
-              {Math.floor((systemStats.uptime % 3600) / 60)}m
-            </div>
-          </div>
+          <ServerStatus systemStats={systemStats} isDark={isDark} />
 
           <div className="flex items-center gap-2">
             {/* Theme Toggle */}
@@ -317,7 +292,7 @@ export default function App() {
             <button
               onClick={handleAddFolder}
               disabled={isAdding}
-              className={`flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04]  transition-colors ${isDark ? "text-zinc-200" : "text-zinc-600"}`}
+              className={`flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] transition-colors ${isDark ? "text-zinc-200" : "text-zinc-600"}`}
             >
               <Plus className="size-3" />
               Add Folder

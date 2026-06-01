@@ -10,6 +10,20 @@ import logger from "../logger";
 const PLAYER_DEV_PORT = parseInt(process.env.PLAYER_DEV_PORT || "5174", 10);
 const playerDevUrl = `http://localhost:${PLAYER_DEV_PORT}`;
 
+function getProjectRoot(): string {
+  const cwd = process.cwd();
+
+  // If executing inside a macOS app bundle, escape it
+  if (cwd.includes(".app/Contents/MacOS")) {
+    // Navigates from: /build/dev-macos-arm64/Burrow Stream-dev.app/Contents/MacOS
+    // Up 5 levels to reach the true project root folder
+    return join(cwd, "..", "..", "..", "..", "..");
+  }
+
+  // Fallback for standard terminal execution
+  return cwd;
+}
+
 async function checkViteRunning(url: string): Promise<boolean> {
   try {
     // Timeout quickly to prevent hanging the engine startup chain
@@ -25,13 +39,21 @@ async function checkViteRunning(url: string): Promise<boolean> {
 }
 
 function getPlayerDir(): string {
+  const root = getProjectRoot();
+
   // 1. Development Boundary
-  const devPath = join(process.cwd(), "src", "player", "dist-player");
+  const devPath = join(root, "dist-player");
   if (existsSync(devPath)) return devPath;
 
-  // 2. Production Bundle Boundary
-  const prodPath = join(import.meta.dir, "..", "views", "player-dist");
+  // 2. Production Bundle Boundary (Adjust if assets are copied to the .app contents)
+  const prodPath = join(process.cwd(), "..", "Resources", "player-dist");
   if (existsSync(prodPath)) return prodPath;
+
+  console.error("Path Resolution Debug:", {
+    calculatedRoot: root,
+    attemptedDev: devPath,
+    attemptedProd: prodPath,
+  });
 
   throw new Error("Player build not found. Run 'bun run build:player' first.");
 }

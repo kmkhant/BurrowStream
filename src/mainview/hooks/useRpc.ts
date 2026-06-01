@@ -86,6 +86,11 @@ export function useRPC() {
     bunVersion: "",
     cpuCores: 0,
     cpuModel: "",
+    network: {
+      downloadMbps: 0,
+      uploadMbps: 0,
+      interface: "",
+    },
   });
 
   // ── Core Orchestration Actions (Loading/Lifecycle) ──
@@ -121,16 +126,23 @@ export function useRPC() {
   }, []);
 
   useEffect(() => {
+    async function fetchSystemStats() {
+      const stats = await rpcCall("getSystemStats");
+      setSystemStats(stats);
+    }
+
+    // first get the stats
+    fetchSystemStats();
+
     const interval = setInterval(async () => {
       try {
-        const stats = await rpcCall("getSystemStats");
-        setSystemStats(stats);
-      } catch {
-        // Suppress polling connection noise
+        await fetchSystemStats();
+      } catch (error) {
+        console.error("Failed to fetch system stats:", error);
       }
     }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+    return () => clearInterval(interval); // cleanup
+  }, []); // only run once
 
   // ── Domain Actions (Sorted Alphabetically by Context) ──
 

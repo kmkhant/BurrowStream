@@ -149,6 +149,11 @@ export const SystemStatsResponseSchema = z.object({
   bunVersion: z.string(),
   cpuCores: z.number(),
   cpuModel: z.string(),
+  network: z.object({
+    downloadMbps: z.number(),
+    uploadMbps: z.number(),
+    interface: z.string(),
+  }),
 });
 export type SystemStatsResponse = z.infer<typeof SystemStatsResponseSchema>;
 
