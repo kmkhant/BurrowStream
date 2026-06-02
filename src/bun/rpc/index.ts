@@ -10,6 +10,9 @@ import { cancelScan, startScan } from "./handlers/scanner";
 // Streaming handlers
 import { startServer, stopServer, getServerStatus } from "./handlers/streaming";
 
+// updater handlers
+import { checkForUpdates, applyDownloadedUpdate } from "../updater";
+
 // test functions
 async function ping() {
   return "pong";
@@ -35,4 +38,8 @@ export const rpcHandlers = {
   startServer,
   stopServer,
   getServerStatus,
+
+  // updates
+  checkForUpdates,
+  applyDownloadedUpdate,
 };

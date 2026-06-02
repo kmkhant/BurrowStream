@@ -14,6 +14,7 @@ import {
   ToggleFolderActiveRequest,
   UpdateVideoRequest,
 } from "../../shared/rpc/definitions";
+import { UpdateStatusChangedSchema } from "../../shared/rpc/definitions";
 
 import type {
   ActivityLogResponse,
@@ -190,6 +191,17 @@ export interface RPCMethods {
     request: ScanProgressResponse;
     response: void;
   };
+
+  // System Updates
+  checkForUpdates: {
+    request: void;
+    response: void;
+  };
+
+  applyDownloadedUpdate: {
+    request: void;
+    response: void;
+  };
 }
 
 export type RPCMethodName = keyof RPCMethods;
@@ -284,10 +296,22 @@ export type MainRPC = {
         params: z.infer<typeof GetActivityLogsSchema>;
         response: ActivityLogResponse[];
       };
+
+      // updates
+      checkForUpdates: {
+        params: Record<string, never>;
+        response: void;
+      };
+
+      applyDownloadedUpdate: {
+        params: Record<string, never>;
+        response: void;
+      };
     };
     messages: {
       log: { msg: string };
       scanProgress: ScanProgressResponse;
+      updateStatusChanged: z.infer<typeof UpdateStatusChangedSchema>;
     };
   }>;
   webview: RPCSchema<{

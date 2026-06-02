@@ -9,6 +9,10 @@ export const mainWindowRpc = BrowserView.defineRPC<MainRPC>({
       // Test handlers
       ping: rpcHandlers.ping,
 
+      // updates handlers
+      checkForUpdates: rpcHandlers.checkForUpdates,
+      applyDownloadedUpdate: rpcHandlers.applyDownloadedUpdate,
+
       // system handlers
       getSystemStats: rpcHandlers.getSystemStats,
 
@@ -32,6 +36,9 @@ export const mainWindowRpc = BrowserView.defineRPC<MainRPC>({
       },
       scanProgress: (data) => {
         console.log("Scan progress:", data);
+      },
+      updateStatusChanged: (data) => {
+        console.log("Update status changed downstream packet:", data);
       },
     },
   },

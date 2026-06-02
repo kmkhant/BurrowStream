@@ -7,6 +7,7 @@ import type {
   FolderResponse,
   ScanProgressResponse,
   SystemStatsResponse,
+  UpdateStatusChangedResponse,
   VideoResponse,
   VideoStatsResponse,
 } from "../../shared/rpc/definitions";
@@ -111,15 +112,28 @@ export function useRPC() {
   }, [loadAll]);
 
   // ── Unidirectional Message Subscriptions & Polling ──
+  // TODO: Not Receiving Scan Progress Events
   useEffect(() => {
     const unsubscribe = electrobun.rpc?.addMessageListener(
       "scanProgress",
       (progress: ScanProgressResponse) => {
         setScanProgress(progress);
         if (progress.phase === "complete" || progress.phase === "error") {
+          console.log("Scan complete or error:", progress);
           setIsScanning(false);
           loadAllRef.current();
         }
+      },
+    );
+    return unsubscribe;
+  }, []);
+
+  // TODO: Not Receiving Update Status Changed Events
+  useEffect(() => {
+    const unsubscribe = electrobun.rpc?.addMessageListener(
+      "updateStatusChanged",
+      (status: UpdateStatusChangedResponse) => {
+        console.log("Update status changed:", status);
       },
     );
     return unsubscribe;

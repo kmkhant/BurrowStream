@@ -200,3 +200,27 @@ export interface PaginatedResponse<T> {
   limit: number;
   offset: number;
 }
+
+// ==========================================
+// ── UPDATE MANAGEMENT SCHEMAS & TYPES ──
+// ==========================================
+
+export const RequestCheckForUpdatesSchema = z.object({});
+export const RequestApplyUpdateSchema = z.object({});
+
+export const UpdateStatusChangedSchema = z.object({
+  state: z.enum([
+    "idle",
+    "checking",
+    "available",
+    "downloading",
+    "ready",
+    "error",
+  ]),
+  version: z.string().optional(),
+  error: z.string().optional(),
+});
+
+export type UpdateStatusChangedResponse = z.infer<
+  typeof UpdateStatusChangedSchema
+>;

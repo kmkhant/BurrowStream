@@ -6,6 +6,9 @@ export default {
     identifier: "com.burrowstream.app",
     version: "v1.0.0",
   },
+  release: {
+    baseUrl: "https://github.com/kmkhant/BurrowStream/releases/latest/download",
+  },
   runtime: {
     exitOnLastWindowClosed: true,
   },
