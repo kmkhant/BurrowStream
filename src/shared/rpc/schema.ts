@@ -316,6 +316,9 @@ export type MainRPC = {
   }>;
   webview: RPCSchema<{
     requests: Record<string, never>;
-    messages: Record<string, never>;
+    messages: {
+      scanProgress: ScanProgressResponse;
+      updateStatusChanged: z.infer<typeof UpdateStatusChangedSchema>;
+    };
   }>;
 };
