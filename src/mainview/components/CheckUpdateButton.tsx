@@ -1,5 +1,6 @@
 import { cn } from "../lib/utils";
 import type { UpdateStatusChangedResponse } from "../../shared/rpc/definitions";
+import { BadgeCheckIcon } from "lucide-react";
 
 interface UpdateButtonProps {
   status: UpdateStatusChangedResponse | null;
@@ -71,6 +72,13 @@ export function CheckUpdateButton({
       );
       title = status?.error ?? undefined;
       break;
+    case "up-to-date":
+      label = "Up to Date";
+      buttonClass = cn(
+        "bg-[var(--bg-elevated)] hover:bg-[var(--bg-hover)] border-[var(--border-subtle)] bg-emerald-500/10 text-emerald-400",
+        className ?? "",
+      );
+      break;
     default:
       label = "Check Updates";
       buttonClass = cn(
@@ -86,14 +94,22 @@ export function CheckUpdateButton({
         if (state === "idle" || state === "error") return onCheck();
         if (state === "available" || state === "ready") return onApply();
       }}
-      disabled={state === "checking" || state === "downloading"}
+      disabled={
+        state === "checking" ||
+        state === "downloading" ||
+        state === "up-to-date"
+      }
       title={title}
       className={cn(
-        "text-[11px] px-2 py-1.5 rounded-md border transition-colors min-w-[6.5rem]",
+        "flex items-center justify-center text-[11px] px-2 py-1.5 rounded-md border transition-colors min-w-[6.5rem]",
         buttonClass,
         className ?? "",
       )}
     >
+      {state === "up-to-date" && (
+        <BadgeCheckIcon size={12} className="mr-1 text-emerald-400" />
+      )}
+
       {label}
     </button>
   );

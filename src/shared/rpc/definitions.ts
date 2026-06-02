@@ -219,6 +219,7 @@ export const UpdateStatusChangedSchema = z.object({
     "downloading",
     "ready",
     "error",
+    "up-to-date",
   ]),
   version: z.string().optional(),
   error: z.string().optional(),

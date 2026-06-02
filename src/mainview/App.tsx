@@ -76,6 +76,14 @@ export default function App() {
     }
   };
 
+  const handleApplyUpdate = async () => {
+    await applyUpdate();
+  };
+
+  const handleCheckForUpdates = async () => {
+    await checkForUpdates();
+  };
+
   const handleCopyStreamlink = () => {
     navigator.clipboard.writeText(streamingServerUrl);
 
@@ -114,7 +122,7 @@ export default function App() {
             </span>
           </div>
           {/* <button
-            onClick={handlePingWebview}
+            onClick={handleApplyUpdate}
             className="text-[11px] px-2 py-1.5 rounded-md bg-[var(--bg-elevated)] hover:bg-[var(--bg-hover)] border border-[var(--border-subtle)] transition-colors"
           >
             Ping Webview
@@ -129,8 +137,8 @@ export default function App() {
             {/* ── UPDATE STATUS INDICATOR ── */}
             <CheckUpdateButton
               status={updateStatus}
-              onCheck={checkForUpdates}
-              onApply={applyUpdate}
+              onCheck={handleCheckForUpdates}
+              onApply={handleApplyUpdate}
               isDark={isDark}
             />
 

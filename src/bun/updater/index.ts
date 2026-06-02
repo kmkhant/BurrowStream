@@ -4,7 +4,14 @@ import { mainWindow } from "../windows";
 import logger from "../logger";
 
 function sendStatusToFrontend(
-  state: "idle" | "checking" | "available" | "downloading" | "ready" | "error",
+  state:
+    | "idle"
+    | "checking"
+    | "available"
+    | "downloading"
+    | "ready"
+    | "error"
+    | "up-to-date",
   version?: string,
   error?: string,
 ) {
@@ -18,8 +25,8 @@ function sendStatusToFrontend(
 
 export async function checkForUpdates() {
   try {
-    const localInfo = await Updater.getLocalInfo();
-    const channel = localInfo.channel;
+    // const localInfo = await Updater.getLocalInfo();
+    // const channel = localInfo.channel;
 
     // if (channel === "dev" || process.env.BUN_ENV === "development") {
     //   logger.info(
@@ -61,7 +68,7 @@ export async function checkForUpdates() {
       }
     } else {
       logger.info("✅ Application is completely up to date.");
-      sendStatusToFrontend("idle");
+      sendStatusToFrontend("up-to-date");
     }
   } catch (error) {
     logger.error(
