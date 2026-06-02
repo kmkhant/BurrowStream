@@ -7,6 +7,7 @@ import type {
   FolderResponse,
   ScanProgressResponse,
   SystemStatsResponse,
+  UpdateStatusChangedResponse,
   VideoResponse,
   VideoStatsResponse,
 } from "../../shared/rpc/definitions";
@@ -51,6 +52,10 @@ export function useRPC() {
   // ── State Grouping ──
   const [loading, setLoading] = useState(true);
   const [activityLogs, setActivityLogs] = useState<ActivityLogResponse[]>([]);
+
+  // Software Updates
+  const [updateStatus, setUpdateStatus] =
+    useState<UpdateStatusChangedResponse | null>(null);
 
   // Folder & Video States
   const [folders, setFolders] = useState<FolderResponse[]>([]);
@@ -110,6 +115,30 @@ export function useRPC() {
     loadAllRef.current = loadAll;
   }, [loadAll]);
 
+  useEffect(() => {
+    const unsubscribe = electrobun.rpc?.addMessageListener(
+      "dummyAlert",
+      (data: { message: string; timestamp: number }) => {
+        console.log("[Webview] dummyAlert received:", data);
+        // Visual feedback so you know it worked
+        alert(`Bun says: ${data.message}\nSent at: ${data.timestamp}`);
+      },
+    );
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    console.log("Adding update status changed listener");
+    const unsubscribe = electrobun.rpc?.addMessageListener(
+      "updateStatusChanged",
+      (status: UpdateStatusChangedResponse) => {
+        console.log("Update status changed:", status);
+        setUpdateStatus(status);
+      },
+    );
+    return unsubscribe;
+  }, []);
+
   // ── Unidirectional Message Subscriptions & Polling ──
   useEffect(() => {
     const unsubscribe = electrobun.rpc?.addMessageListener(
@@ -145,15 +174,6 @@ export function useRPC() {
   }, []); // only run once
 
   // ── Domain Actions (Sorted Alphabetically by Context) ──
-  // Updates
-  const applyDownloadedUpdate = useCallback(async () => {
-    await rpcCall("applyDownloadedUpdate");
-  }, []);
-
-  const checkForUpdates = useCallback(async () => {
-    await rpcCall("checkForUpdates");
-  }, []);
-
   // Activity Logs
   const clearLogs = useCallback(async () => {
     await rpcCall("clearActivityLogs");
@@ -189,6 +209,16 @@ export function useRPC() {
 
   const pingWebview = useCallback(async () => {
     return await rpcCall("pingWebview");
+  }, []);
+
+  // System Updates
+  const checkForUpdates = useCallback(async () => {
+    setUpdateStatus((s) => (s?.state === "ready" ? s : { state: "checking" }));
+    await rpcCall("checkForUpdates");
+  }, []);
+
+  const applyUpdate = useCallback(async () => {
+    await rpcCall("applyDownloadedUpdate");
   }, []);
 
   // Scanning Operations
@@ -243,8 +273,9 @@ export function useRPC() {
 
   // ── Return Payload ──
   return {
-    applyDownloadedUpdate,
+    updateStatus,
     checkForUpdates,
+    applyUpdate,
     activityLogs,
     addFolder,
     cancelScan,

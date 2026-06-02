@@ -1,6 +1,6 @@
 // src/bun/updater/index.ts
 import { Updater } from "electrobun/bun";
-import { mainWindowRpc } from "../../shared/rpc";
+import { mainWindow } from "../windows";
 import logger from "../logger";
 
 function sendStatusToFrontend(
@@ -9,7 +9,7 @@ function sendStatusToFrontend(
   error?: string,
 ) {
   // @ts-ignore
-  mainWindowRpc.send.updateStatusChanged({
+  mainWindow.webview.rpc?.send.updateStatusChanged({
     state,
     version,
     error,
@@ -30,6 +30,7 @@ export async function checkForUpdates() {
 
     logger.info("🔍 Querying remote release server for updates...");
 
+    logger.info("Sending status to frontend: checking");
     sendStatusToFrontend("checking");
     const status = await Updater.checkForUpdate();
 
