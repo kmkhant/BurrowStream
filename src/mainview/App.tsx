@@ -118,7 +118,7 @@ export default function App() {
               </span>
             </div>
             <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/[0.04] text-[var(--text-primary)] border border-[var(--border-subtle)]">
-              v0.0.1
+              v1.0.0
             </span>
           </div>
           {/* <button
