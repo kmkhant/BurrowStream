@@ -48,7 +48,7 @@ export function getPlayerDir(): string {
       "Resources",
       "app",
       "views",
-      "player-dist",
+      "player",
     );
 
     logger.info(
