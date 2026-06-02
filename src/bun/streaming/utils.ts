@@ -1,7 +1,7 @@
 import { networkInterfaces } from "os";
 import { join, resolve } from "path";
 import logger from "../logger";
-import { existsSync, readdirSync } from "fs";
+import { existsSync } from "fs";
 
 export async function getLocalIP() {
   const nets = networkInterfaces();

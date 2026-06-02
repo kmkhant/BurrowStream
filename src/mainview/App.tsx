@@ -358,8 +358,8 @@ export default function App() {
 
             {/* Metadata Sub-Label Block */}
             <div className="text-center mt-4 space-y-1">
-              <h4 className="text-xs font-semibold tracking-wider text-[var(--text-primary)] uppercase">
-                Local Network Access
+              <h4 className="text-xs font-semibold tracking-wider text-[var(--text-primary)] lowercase">
+                {streamingServerUrl}
               </h4>
               <p className="text-[10px] text-[var(--text-secondary)] max-w-[240px]">
                 Scan with a phone or tablet on the same Wi-Fi network to
