@@ -18,7 +18,7 @@ jobs:
             platform-name: macos
           - os: windows-latest
             platform-name: windows
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             platform-name: linux
 
     runs-on: ${{ matrix.os }}
@@ -74,12 +74,9 @@ jobs:
           NODE_ENV: production
 
       # Archive and Upload Artifacts
-      # Electrobun build directory structures vary by platform (e.g., .app bundle, .exe, or self-extracting zstd binary)
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: burrowstream-app-${{ matrix.platform-name }}
-          path: |
-            out/
-            dist/
-          if-no-files-found: warn
+          path: artifacts/
+          if-no-files-found: error
