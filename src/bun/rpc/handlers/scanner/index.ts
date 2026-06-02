@@ -1,6 +1,6 @@
 // src/bun/rpc/handlers/scan.ts
 import { eq, sql } from "drizzle-orm";
-import { db } from "../../../db/client";
+import { getDB } from "../../../db/client";
 import {
   activityLog,
   scanHistory,
@@ -15,6 +15,8 @@ import type { SuccessResponse } from "../../../../shared/rpc/definitions";
 
 const scanner = new MediaScanner();
 const parser = new MediaParser();
+
+const db = getDB();
 
 export async function startScan(
   _params: Record<string, never>,

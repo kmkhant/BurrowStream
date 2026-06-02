@@ -2,13 +2,15 @@
 import { join } from "node:path";
 import { existsSync } from "node:fs";
 import { eq, sql } from "drizzle-orm";
-import { db } from "../db/client";
+import { getDB } from "../db/client";
 import { videos } from "../db/schema";
 import logger from "../logger";
 
 // ── Shared Configuration Context ──
 const PLAYER_DEV_PORT = parseInt(process.env.PLAYER_DEV_PORT || "5174", 10);
 const playerDevUrl = `http://localhost:${PLAYER_DEV_PORT}`;
+
+const db = getDB();
 
 function getProjectRoot(): string {
   const cwd = process.cwd();
@@ -45,14 +47,39 @@ function getPlayerDir(): string {
   const devPath = join(root, "dist-player");
   if (existsSync(devPath)) return devPath;
 
-  // 2. Production Bundle Boundary (Adjust if assets are copied to the .app contents)
+  // 2. Production Bundle Boundary
+  // In production, the app runs from .app/Contents/MacOS or .app/Contents/Resources
   const prodPath = join(process.cwd(), "..", "Resources", "player-dist");
   if (existsSync(prodPath)) return prodPath;
 
+  // 3. ASAR archive path (if bundled in ASAR)
+  const asarPath = join(
+    process.cwd(),
+    "..",
+    "Resources",
+    "app.asar.unpacked",
+    "player-dist",
+  );
+  if (existsSync(asarPath)) return asarPath;
+
+  // 4. Try relative to the executable
+  const execPath = join(process.execPath, "..", "Resources", "player-dist");
+  if (existsSync(execPath)) return execPath;
+
+  // 5. Try relative to __dirname (if using CommonJS or transpiled)
+  const dirnamePath = join(__dirname, "..", "Resources", "player-dist");
+  if (existsSync(dirnamePath)) return dirnamePath;
+
   console.error("Path Resolution Debug:", {
     calculatedRoot: root,
+    cwd: process.cwd(),
+    execPath: process.execPath,
+    __dirname: typeof __dirname !== "undefined" ? __dirname : "N/A",
     attemptedDev: devPath,
     attemptedProd: prodPath,
+    attemptedAsar: asarPath,
+    attemptedExec: execPath,
+    attemptedDirname: dirnamePath,
   });
 
   throw new Error("Player build not found. Run 'bun run build:player' first.");

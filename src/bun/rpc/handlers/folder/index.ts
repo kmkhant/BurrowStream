@@ -26,7 +26,7 @@ import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 import { RemoveFolderRequest } from "../../../../shared/rpc/definitions";
 
-import { db } from "../../../db/client";
+import { getDB } from "../../../db/client";
 import {
   watchedFolders,
   activityLog,
@@ -36,6 +36,8 @@ import {
 
 // logger
 import logger from "../../../logger";
+
+const db = getDB();
 
 export async function getFolders() {
   return db

@@ -1,4 +1,7 @@
 import { mainWindow } from "./windows";
+import { runMigrations } from "./db/migrate";
+
+runMigrations();
 
 mainWindow.show();
 

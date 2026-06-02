@@ -31,6 +31,9 @@ export default {
       // Player build
       "dist-player/index.html": "views/player-dist/index.html",
       "dist-player/assets": "views/player-dist/assets",
+
+      // Include Drizzle Migrations in the bundle
+      drizzle: "../drizzle",
     },
     // Ignore Vite output in watch mode — HMR handles view rebuilds separately
     watchIgnore: ["dist/**", "dist-player/**", "**/*.generated.*"],
