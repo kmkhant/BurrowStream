@@ -10,8 +10,6 @@ export default {
     exitOnLastWindowClosed: true,
   },
   build: {
-    useAsar: true,
-    asarUnpack: ["*.node", "*.dll", "*.dylib", "*.so"],
     bun: {
       entrypoint: "src/bun/index.ts",
     },
@@ -29,8 +27,8 @@ export default {
       "dist/assets": "views/mainview/assets",
 
       // Player build
-      "dist-player/index.html": "views/player-dist/index.html",
-      "dist-player/assets": "views/player-dist/assets",
+      "dist-player/index.html": "views/player/index.html",
+      "dist-player/assets": "views/player/assets",
 
       // Include Drizzle Migrations in the bundle
       drizzle: "../drizzle",

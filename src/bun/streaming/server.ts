@@ -1,30 +1,16 @@
 // src/bun/streaming/server.ts
-import { join } from "node:path";
-import { existsSync } from "node:fs";
+import { join } from "path";
 import { eq, sql } from "drizzle-orm";
 import { getDB } from "../db/client";
 import { videos } from "../db/schema";
 import logger from "../logger";
+import { getPlayerDir } from "./utils";
 
 // ── Shared Configuration Context ──
 const PLAYER_DEV_PORT = parseInt(process.env.PLAYER_DEV_PORT || "5174", 10);
 const playerDevUrl = `http://localhost:${PLAYER_DEV_PORT}`;
 
 const db = getDB();
-
-function getProjectRoot(): string {
-  const cwd = process.cwd();
-
-  // If executing inside a macOS app bundle, escape it
-  if (cwd.includes(".app/Contents/MacOS")) {
-    // Navigates from: /build/dev-macos-arm64/Burrow Stream-dev.app/Contents/MacOS
-    // Up 5 levels to reach the true project root folder
-    return join(cwd, "..", "..", "..", "..", "..");
-  }
-
-  // Fallback for standard terminal execution
-  return cwd;
-}
 
 async function checkViteRunning(url: string): Promise<boolean> {
   try {
@@ -38,51 +24,6 @@ async function checkViteRunning(url: string): Promise<boolean> {
   } catch {
     return false;
   }
-}
-
-function getPlayerDir(): string {
-  const root = getProjectRoot();
-
-  // 1. Development Boundary
-  const devPath = join(root, "dist-player");
-  if (existsSync(devPath)) return devPath;
-
-  // 2. Production Bundle Boundary
-  // In production, the app runs from .app/Contents/MacOS or .app/Contents/Resources
-  const prodPath = join(process.cwd(), "..", "Resources", "player-dist");
-  if (existsSync(prodPath)) return prodPath;
-
-  // 3. ASAR archive path (if bundled in ASAR)
-  const asarPath = join(
-    process.cwd(),
-    "..",
-    "Resources",
-    "app.asar.unpacked",
-    "player-dist",
-  );
-  if (existsSync(asarPath)) return asarPath;
-
-  // 4. Try relative to the executable
-  const execPath = join(process.execPath, "..", "Resources", "player-dist");
-  if (existsSync(execPath)) return execPath;
-
-  // 5. Try relative to __dirname (if using CommonJS or transpiled)
-  const dirnamePath = join(__dirname, "..", "Resources", "player-dist");
-  if (existsSync(dirnamePath)) return dirnamePath;
-
-  console.error("Path Resolution Debug:", {
-    calculatedRoot: root,
-    cwd: process.cwd(),
-    execPath: process.execPath,
-    __dirname: typeof __dirname !== "undefined" ? __dirname : "N/A",
-    attemptedDev: devPath,
-    attemptedProd: prodPath,
-    attemptedAsar: asarPath,
-    attemptedExec: execPath,
-    attemptedDirname: dirnamePath,
-  });
-
-  throw new Error("Player build not found. Run 'bun run build:player' first.");
 }
 
 // ── Primary Factory Export ──
@@ -254,8 +195,15 @@ export function createServer(port: number = 8080) {
       // Serve static build from disk
       const fullPath = join(playerDir, filePath);
       const staticFile = Bun.file(fullPath);
+      const fileExists = await staticFile.exists();
 
-      if (await staticFile.exists()) {
+      console.log(`[STREAM SERVER] Request path: "${url.pathname}"`);
+      console.log(`[STREAM SERVER] Looking for file at: "${fullPath}"`);
+      console.log(
+        `[STREAM SERVER] Target exists inside ASAR? -> ${fileExists}`,
+      );
+
+      if (fileExists) {
         return new Response(staticFile, {
           headers: {
             "Content-Type": staticFile.type, // Leverage Bun's accurate automatic mime detection
