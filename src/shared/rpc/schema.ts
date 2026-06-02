@@ -106,6 +106,11 @@ export interface RPCMethods {
     request: void;
     response: { success: boolean };
   };
+  pingWebview: {
+    request: void;
+    response: { success: boolean };
+  };
+
   getSystemStats: {
     request: void;
     response: SystemStatsResponse;
@@ -216,6 +221,11 @@ export type MainRPC = {
         params: Record<string, never>;
         response: string;
       };
+      pingWebview: {
+        params: Record<string, never>;
+        response: { success: boolean };
+      };
+
       getSystemStats: {
         params: Record<string, never>;
         response: SystemStatsResponse;
@@ -312,6 +322,7 @@ export type MainRPC = {
       log: { msg: string };
       scanProgress: ScanProgressResponse;
       updateStatusChanged: z.infer<typeof UpdateStatusChangedSchema>;
+      dummyAlert: { message: string; timestamp: number };
     };
   }>;
   webview: RPCSchema<{
@@ -319,6 +330,7 @@ export type MainRPC = {
     messages: {
       scanProgress: ScanProgressResponse;
       updateStatusChanged: z.infer<typeof UpdateStatusChangedSchema>;
+      dummyAlert: { message: string; timestamp: number };
     };
   }>;
 };

@@ -13,14 +13,26 @@ import { startServer, stopServer, getServerStatus } from "./handlers/streaming";
 // updater handlers
 import { checkForUpdates, applyDownloadedUpdate } from "../updater";
 
+import { mainWindow } from "../windows";
+
 // test functions
 async function ping() {
   return "pong";
 }
 
+export async function pingWebview() {
+  // @ts-ignore
+  mainWindow.webview.rpc?.send.dummyAlert({
+    message: "Hello from Bun! You clicked the button.",
+    timestamp: Date.now(),
+  });
+  return { success: true };
+}
+
 export const rpcHandlers = {
   // test handlers
   ping,
+  pingWebview,
 
   // system handlers
   getSystemStats,

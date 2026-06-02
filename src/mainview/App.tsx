@@ -22,6 +22,8 @@ import { cn, formatBytes } from "./utils";
 
 import StatsGrid from "./components/StatsGrid";
 import { ServerStatus } from "./components/ServerStats";
+import { electrobun } from "./lib/electrobun";
+import { UpdateStatusChangedResponse } from "../shared/rpc/definitions";
 
 export default function App() {
   // Theme State
@@ -32,6 +34,7 @@ export default function App() {
   // RPC State
   const {
     folders,
+    pingWebview,
     videoStats,
     isScanning,
     scanProgress,
@@ -50,6 +53,34 @@ export default function App() {
   useEffect(() => {
     refreshAll();
   }, [refreshAll]);
+
+  const handlePingWebview = async () => {
+    const result = await pingWebview();
+    console.log("Pinged webview", result);
+  };
+
+  useEffect(() => {
+    console.log("Adding update status changed listener");
+    const unsubscribe = electrobun.rpc?.addMessageListener(
+      "updateStatusChanged",
+      (status: UpdateStatusChangedResponse) => {
+        console.log("Update status changed:", status);
+      },
+    );
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = electrobun.rpc?.addMessageListener(
+      "dummyAlert",
+      (data: { message: string; timestamp: number }) => {
+        console.log("[Webview] dummyAlert received:", data);
+        // Visual feedback so you know it worked
+        alert(`Bun says: ${data.message}\nSent at: ${data.timestamp}`);
+      },
+    );
+    return unsubscribe;
+  }, []);
 
   // Stats
   const totalVideos = videoStats.total;
@@ -103,6 +134,12 @@ export default function App() {
               v0.0.1
             </span>
           </div>
+          <button
+            onClick={handlePingWebview}
+            className="text-[11px] px-2 py-1.5 rounded-md bg-[var(--bg-elevated)] hover:bg-[var(--bg-hover)] border border-[var(--border-subtle)] transition-colors"
+          >
+            Ping Webview
+          </button>
 
           {/* Server Status */}
           <ServerStatus systemStats={systemStats} isDark={isDark} />

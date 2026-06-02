@@ -5,6 +5,9 @@ import { z } from "zod";
 // REQUEST SCHEMAS & TYPES ──
 // ==========================================
 
+export const PingWebviewRequest = z.object({});
+export type PingWebviewRequest = z.infer<typeof PingWebviewRequest>;
+
 export const GetFoldersRequest = z.object({});
 export type GetFoldersRequest = z.infer<typeof GetFoldersRequest>;
 

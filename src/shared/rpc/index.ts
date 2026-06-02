@@ -8,6 +8,7 @@ export const mainWindowRpc = BrowserView.defineRPC<MainRPC>({
     requests: {
       // Test handlers
       ping: rpcHandlers.ping,
+      pingWebview: rpcHandlers.pingWebview,
 
       // updates handlers
       checkForUpdates: rpcHandlers.checkForUpdates,

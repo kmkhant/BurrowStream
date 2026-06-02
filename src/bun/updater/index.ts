@@ -21,12 +21,12 @@ export async function checkForUpdates() {
     const localInfo = await Updater.getLocalInfo();
     const channel = localInfo.channel;
 
-    if (channel === "dev" || process.env.BUN_ENV === "development") {
-      logger.info(
-        "💻 Running in development context. Skipping update sequence.",
-      );
-      return;
-    }
+    // if (channel === "dev" || process.env.BUN_ENV === "development") {
+    //   logger.info(
+    //     "💻 Running in development context. Skipping update sequence.",
+    //   );
+    //   return;
+    // }
 
     logger.info("🔍 Querying remote release server for updates...");
 

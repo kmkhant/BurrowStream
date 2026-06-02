@@ -7,7 +7,6 @@ import type {
   FolderResponse,
   ScanProgressResponse,
   SystemStatsResponse,
-  UpdateStatusChangedResponse,
   VideoResponse,
   VideoStatsResponse,
 } from "../../shared/rpc/definitions";
@@ -127,16 +126,6 @@ export function useRPC() {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = electrobun.rpc?.addMessageListener(
-      "updateStatusChanged",
-      (status: UpdateStatusChangedResponse) => {
-        console.log("Update status changed:", status);
-      },
-    );
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
     async function fetchSystemStats() {
       const stats = await rpcCall("getSystemStats");
       setSystemStats(stats);
@@ -156,6 +145,14 @@ export function useRPC() {
   }, []); // only run once
 
   // ── Domain Actions (Sorted Alphabetically by Context) ──
+  // Updates
+  const applyDownloadedUpdate = useCallback(async () => {
+    await rpcCall("applyDownloadedUpdate");
+  }, []);
+
+  const checkForUpdates = useCallback(async () => {
+    await rpcCall("checkForUpdates");
+  }, []);
 
   // Activity Logs
   const clearLogs = useCallback(async () => {
@@ -188,6 +185,10 @@ export function useRPC() {
   // Diagnostics / Ping
   const ping = useCallback(async () => {
     return await rpcCall("ping");
+  }, []);
+
+  const pingWebview = useCallback(async () => {
+    return await rpcCall("pingWebview");
   }, []);
 
   // Scanning Operations
@@ -242,6 +243,8 @@ export function useRPC() {
 
   // ── Return Payload ──
   return {
+    applyDownloadedUpdate,
+    checkForUpdates,
     activityLogs,
     addFolder,
     cancelScan,
@@ -252,6 +255,7 @@ export function useRPC() {
     isScanning,
     loading,
     ping,
+    pingWebview,
     refreshAll: loadAll,
     removeFolder,
     scanProgress,
