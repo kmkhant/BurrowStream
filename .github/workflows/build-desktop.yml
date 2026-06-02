@@ -1,0 +1,85 @@
+name: Cross-Platform Electrobun Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform-name: macos
+          - os: windows-latest
+            platform-name: windows
+          - os: ubuntu-latest
+            platform-name: linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Install System Dependencies per Platform
+      - name: Install Linux Dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libgtk-3-dev libwebkit2gtk-4.0-dev
+
+      - name: Install macOS Dependencies
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install cmake
+
+      # Windows runners on GitHub Actions come pre-installed with Visual Studio Build Tools and CMake.
+
+      # Setup Bun Environment
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Cache and Install Dependencies
+      - name: Get Bun Cache Directory
+        id: bun-cache
+        run: echo "STORE_PATH=$(bun pm cache)" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Cache Bun Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.bun-cache.outputs.STORE_PATH }}
+          key: ${{ matrix.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            ${{ matrix.os }}-bun-
+
+      # Install production and development dependencies
+      - name: Install Project Dependencies
+        run: bun install --frozen-lockfile
+
+      # Compile Application Via Electrobun CLI
+      - name: Execute Electrobun Build
+        run: bunx electrobun build --env=stable
+        env:
+          # Inject relevant environment variables here for code-signing if needed
+          # e.g., APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD for macOS notarization
+          NODE_ENV: production
+
+      # Archive and Upload Artifacts
+      # Electrobun build directory structures vary by platform (e.g., .app bundle, .exe, or self-extracting zstd binary)
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: burrowstream-app-${{ matrix.platform-name }}
+          path: |
+            out/
+            dist/
+          if-no-files-found: warn
