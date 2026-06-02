@@ -65,6 +65,10 @@ jobs:
       - name: Install Project Dependencies
         run: bun install --frozen-lockfile
 
+      # Compiles the HTML/JS/CSS assets into the dist/ and dist-player/ directories
+      - name: Compile Frontend UI Assets
+        run: bun run build:views
+
       # Compile Application Via Electrobun CLI
       - name: Execute Electrobun Build
         run: bunx electrobun build --env=stable
